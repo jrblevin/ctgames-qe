@@ -1,0 +1,86 @@
+
+CTGAMES RUST (1987) ESTIMATION
+==============================
+
+ Compiler: GCC version 15.1.0
+ Compiler options: -I . -fPIC -mmacosx-version-min=15.0.0 -mcpu=apple-m1 -mlittle-endian -mabi=lp64 -g -gdwarf-2 -O3 -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -fbacktrace -funroll-loops -ftree-vectorize -fopenmp
+ Estimating ABBE model (3 parameters, lambda1 = lambda2 = 1.0)
+
+Loading Bus Data
+----------------
+
+* Group  1: Loaded    360 observations.  15 buses with  24 months per bus
+* Group  2: Loaded    192 observations.   4 buses with  48 months per bus
+* Group  3: Loaded   3312 observations.  48 buses with  69 months per bus
+* Group  4: Loaded   4292 observations.  37 buses with 116 months per bus
+* Group  5: Loaded   1500 observations.  12 buses with 125 months per bus
+* Group  6: Loaded   1250 observations.  10 buses with 125 months per bus
+* Group  7: Loaded   2250 observations.  18 buses with 125 months per bus
+* Group  8: Loaded   2250 observations.  18 buses with 125 months per bus
+* Loaded  15406 observations in total.
+
+Observed Dataset Statistics
+---------------------------
+
+    Sampling: discrete time
+            N:     15406
+
+Est. P(Delta) (sample) = 
+   0.59   0.39   0.02   0.00   0.00   0.00   0.00   0.00   0.00   0.00
+   0.00   0.49   0.51   0.00   0.00   0.00   0.00   0.00   0.00   0.00
+   0.00   0.00   0.44   0.55   0.01   0.00   0.00   0.00   0.00   0.00
+   0.00   0.00   0.00   0.48   0.52   0.00   0.00   0.00   0.00   0.00
+   0.00   0.00   0.00   0.00   0.48   0.52   0.00   0.00   0.00   0.00
+   0.00   0.00   0.00   0.00   0.00   0.50   0.49   0.01   0.00   0.00
+   0.00   0.00   0.00   0.00   0.00   0.00   0.46   0.53   0.01   0.00
+   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.45   0.53   0.02
+   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.47   0.52
+   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.45
+
+Unconditional replacement frequency =       0.80488E-02
+
+Optimization runs:
+------------------
+
+Starting value j =   1  LL = -13947.5502306701910
+Starting value j =   2  LL = -13947.5502306704420
+Starting value j =   3  LL = -13947.5502306710114
+Starting value j =   4  LL = -13947.5502306703656
+Starting value j =   5  LL = -13947.5502306700764
+Starting value j =   6  LL = -13947.5502306697836
+Starting value j =   7  LL = -14907.8527485186714
+Starting value j =   8  LL = -13947.5502306702128
+Starting value j =   9  LL = -13947.5502306704566
+Starting value j =  10  LL = -13947.5502306699491
+Starting value j =  11  LL = -13947.5502306700455
+Starting value j =  12  LL = -13947.5502306712278
+Starting value j =  13  LL = -13947.5502306710914
+Starting value j =  14  LL = -13947.5502306699036
+Starting value j =  15  LL = -13947.5502306700910
+Starting value j =  16  LL = -13947.5502306707767
+Starting value j =  17  LL = -14398.1741150051112
+Starting value j =  18  LL = -14335.7659694045306
+Starting value j =  19  LL = -14189.2881936979302
+Starting value j =  20  LL = -14310.9906661672921
+
+Best run:
+---------
+
+Best starting value: j =          6
+LL = -13947.5502306697836
+
+Results
+=======
+
+\begin{table}
+  \centering
+  \begin{tabular}{lcccc}
+    \hline
+    \hline
+    Sampling   & $\lambda$ & $q_1$    & $\beta$ & $c$   \\
+    \hline
+    Estimates  & 1.000  &   0.526  &  -0.533  &  -8.081  \\
+    S.E.       &  ---   &   0.006  &   0.052  &   0.393  \\
+    \hline
+  \end{tabular} \\
+\end{table}

@@ -1,0 +1,86 @@
+
+CTGAMES RUST (1987) ESTIMATION
+==============================
+
+ Compiler: GCC version 15.1.0
+ Compiler options: -I . -fPIC -mmacosx-version-min=15.0.0 -mcpu=apple-m1 -mlittle-endian -mabi=lp64 -g -gdwarf-2 -O3 -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -fbacktrace -funroll-loops -ftree-vectorize -fopenmp
+ Estimating heterogeneous model (5 parameters)
+
+Loading Bus Data
+----------------
+
+* Group  1: Loaded    360 observations.  15 buses with  24 months per bus
+* Group  2: Loaded    192 observations.   4 buses with  48 months per bus
+* Group  3: Loaded   3312 observations.  48 buses with  69 months per bus
+* Group  4: Loaded   4292 observations.  37 buses with 116 months per bus
+* Group  5: Loaded   1500 observations.  12 buses with 125 months per bus
+* Group  6: Loaded   1250 observations.  10 buses with 125 months per bus
+* Group  7: Loaded   2250 observations.  18 buses with 125 months per bus
+* Group  8: Loaded   2250 observations.  18 buses with 125 months per bus
+* Loaded  15406 observations in total.
+
+Observed Dataset Statistics
+---------------------------
+
+    Sampling: discrete time
+            N:     15406
+
+Est. P(Delta) (sample) = 
+   0.59   0.39   0.02   0.00   0.00   0.00   0.00   0.00   0.00   0.00
+   0.00   0.49   0.51   0.00   0.00   0.00   0.00   0.00   0.00   0.00
+   0.00   0.00   0.44   0.55   0.01   0.00   0.00   0.00   0.00   0.00
+   0.00   0.00   0.00   0.48   0.52   0.00   0.00   0.00   0.00   0.00
+   0.00   0.00   0.00   0.00   0.48   0.52   0.00   0.00   0.00   0.00
+   0.00   0.00   0.00   0.00   0.00   0.50   0.49   0.01   0.00   0.00
+   0.00   0.00   0.00   0.00   0.00   0.00   0.46   0.53   0.01   0.00
+   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.45   0.53   0.02
+   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.47   0.52
+   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.45
+
+Unconditional replacement frequency =       0.80488E-02
+
+Optimization runs:
+------------------
+
+Starting value j =   1  LL = -13937.6582158272304
+Starting value j =   2  LL = -13937.6582158263263
+Starting value j =   3  LL = -13945.6595925442907
+Starting value j =   4  LL = -13978.6383316397460
+Starting value j =   5  LL = -13937.6582158267302
+Starting value j =   6  LL = -13937.6582158255897
+Starting value j =   7  LL = -16105.6826202567063
+Starting value j =   8  LL = -13937.6582158261481
+Starting value j =   9  LL = -13937.6582158265410
+Starting value j =  10  LL = -15867.4472422782910
+Starting value j =  11  LL = -13937.6582158261172
+Starting value j =  12  LL = -14620.3910472439165
+Starting value j =  13  LL = -16115.6681820084978
+Starting value j =  14  LL = -19292.9651067441700
+Starting value j =  15  LL = -13942.4074049421488
+Starting value j =  16  LL = -14800.1276294830659
+Starting value j =  17  LL = -14271.2745528761516
+Starting value j =  18  LL = -14494.7509865588872
+Starting value j =  19  LL = -14262.5621850151620
+Starting value j =  20  LL = -16413.2374090723206
+
+Best run:
+---------
+
+Best starting value: j =          6
+LL = -13937.6582158255897
+
+Results
+=======
+
+\begin{table}
+  \centering
+  \begin{tabular}{lccccc}
+    \hline
+    \hline
+    Sampling   & $\lambda_1$ & $\lambda_2$ & $q_1$    & $\beta$ & $c$   \\
+    \hline
+    Estimates    &   0.022  &   0.033  &   0.526  &  -1.711  &  -9.643  \\
+    S.E.         &   0.004  &   0.005  &   0.006  &   0.493  &   2.189  \\
+    \hline
+  \end{tabular} \\
+\end{table}

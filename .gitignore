@@ -1,0 +1,8 @@
+*.mod
+*.o
+mc1p/rustct
+mc1p/mc1p
+mc1p/logs
+mcnp/TAGS
+mcnp/mcnp
+mcnp/*__genmod.f90
