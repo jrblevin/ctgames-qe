@@ -58,9 +58,11 @@ else
   SAMPLING="Discrete (Δ = $DELTA)"
 fi
 
-# Calculate replications per process
-PER_PROC=$((NMC / NPROC))
-if [ $PER_PROC -lt 1 ]; then
+# Calculate replications per process with better load balancing
+BASE_PER_PROC=$((NMC / NPROC))
+REMAINDER=$((NMC % NPROC))
+
+if [ $BASE_PER_PROC -lt 1 ]; then
   echo "Error: Too many processes ($NPROC) for $NMC replications"
   exit 1
 fi
@@ -82,20 +84,28 @@ echo "Parallelization:"
 echo "  Total cores: $TOTAL_CORES"
 echo "  Threads per process: $NUM_THREADS"
 echo "  Number of processes: $NPROC"
-echo "  Replications per process: ~$PER_PROC"
+echo "  Base replications per process: $BASE_PER_PROC"
+if [ $REMAINDER -gt 0 ]; then
+  echo "  First $REMAINDER processes get +1 extra replication"
+fi
 echo ""
 
 # Launch all processes in background
 PIDS=()
-for ((i=1; i<=NPROC; i++)); do
-  START=$(( (i-1)*PER_PROC + 1 ))
+CURRENT_POS=1
 
-  # Last process gets any remainder
-  if [ $i -eq $NPROC ]; then
-    END=$NMC
+for ((i=1; i<=NPROC; i++)); do
+  START=$CURRENT_POS
+
+  # First REMAINDER processes get one extra replication
+  if [ $i -le $REMAINDER ]; then
+    COUNT=$((BASE_PER_PROC + 1))
   else
-    END=$((i*PER_PROC))
+    COUNT=$BASE_PER_PROC
   fi
+
+  END=$((START + COUNT - 1))
+  CURRENT_POS=$((END + 1))
 
   PROC_NUM=$(printf "%02d" $i)
   RESULTS_FILE="results/${BASE}_${PROC_NUM}.txt"
@@ -110,17 +120,18 @@ for ((i=1; i<=NPROC; i++)); do
   PIDS+=($!)
 done
 
+WAIT_TIME=60
 echo ""
 echo "All processes launched. PIDs: ${PIDS[*]}"
 echo "Started at: $(date)"
 echo ""
-echo "Monitoring progress..."
+echo "Monitoring progress (refreshes every $WAIT_TIME sec.)..."
 
 # Wait for all jobs and track completion
 START_TIME=$(date +%s)
 COMPLETED=0
 while [ $COMPLETED -lt $NPROC ]; do
-  sleep 10
+  sleep $WAIT_TIME
 
   # Count completed processes
   COMPLETED=0
@@ -143,7 +154,7 @@ while [ $COMPLETED -lt $NPROC ]; do
     fi
   done
 
-  # Calculate progress percentage and create progress bar
+  # Calculate progress percentage
   if [ $NMC -gt 0 ]; then
     PERCENT=$((TOTAL_REPS_DONE * 100 / NMC))
   else
@@ -158,15 +169,15 @@ while [ $COMPLETED -lt $NPROC ]; do
 
   # Calculate time estimate
   ELAPSED=$(($(date +%s) - START_TIME))
+  TIMESTAMP=$(date)
   if [ $TOTAL_REPS_DONE -gt 0 ]; then
     AVG_TIME=$((ELAPSED / TOTAL_REPS_DONE))
     REMAINING=$((NMC - TOTAL_REPS_DONE))
     ETA=$((AVG_TIME * REMAINING))
     ETA_MIN=$((ETA / 60))
-
-    printf "\r[%-${BAR_WIDTH}s] %3d%% (%d/%d reps, ~%dm remaining)" "$BAR$EMPTY" "$PERCENT" "$TOTAL_REPS_DONE" "$NMC" "$ETA_MIN"
+    printf "%s Completed %d/%d reps (~%dm remaining)..." "$TIMESTAMP" "$TOTAL_REPS_DONE" "$NMC" "$ETA_MIN"
   else
-    printf "\r[%-${BAR_WIDTH}s] %3d%% (%d/%d reps)" "$BAR$EMPTY" "$PERCENT" "$TOTAL_REPS_DONE" "$NMC"
+    printf "%s Completed %d/%d reps..." "$TIMESTAMP" "$TOTAL_REPS_DONE" "$NMC"
   fi
   echo ""
 done
