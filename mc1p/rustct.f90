@@ -35,15 +35,18 @@ program rustct
 
   implicit none
 
-  ! Model variant and number of parameters (heterogeneous lambda)
+  ! Model variant selection via preprocessor
+#if defined(MODEL_ABBE)
+  integer, parameter :: model_variant = RUST_MODEL_ABBE
+  integer, parameter :: np_theta = np_abbe
+#elif defined(MODEL_HOMOGENEOUS)
+  integer, parameter :: model_variant = RUST_MODEL_HOMOGENEOUS
+  integer, parameter :: np_theta = np_restr
+#else
+  ! Default: heterogeneous model
   integer, parameter :: model_variant = RUST_MODEL_HETEROGENEOUS
   integer, parameter :: np_theta = np_full
-  ! Use these for the homogeneous model (variable lambda)
-  !integer, parameter :: model_variant = RUST_MODEL_HOMOGENEOUS
-  !integer, parameter :: np_theta = np_restr
-  ! Use these for the ABBE model (fixed lambda)
-  !integer, parameter :: model_variant = RUST_MODEL_ABBE
-  !integer, parameter :: np_theta = np_abbe
+#endif
 
   ! Data groups
   integer, dimension(8), parameter :: groups = [ 1, 2, 3, 4, 5, 6, 7, 8 ]
@@ -76,73 +79,73 @@ program rustct
   end if
 
   ! Load starting values
-  if (model_variant == RUST_MODEL_HETEROGENEOUS) then
-     ! 5 parameters: lambda1, lambda2, q1, beta, cost
-     theta_start(1:np_full,1)  = [ 0.1_wp, 0.2_wp, 2.0_wp,  -8.0_wp, -20.0_wp ]
-     theta_start(1:np_full,2)  = [ 0.2_wp, 0.5_wp, 2.0_wp,  -2.0_wp, -20.0_wp ]
-     theta_start(1:np_full,3)  = [ 1.0_wp, 1.0_wp, 1.0_wp,  -1.0_wp, -10.0_wp ]
-     theta_start(1:np_full,4)  = [ 0.5_wp, 1.0_wp, 1.0_wp,  -1.0_wp, -20.0_wp ]
-     theta_start(1:np_full,5)  = [ 0.1_wp, 0.2_wp, 0.5_wp,  -3.0_wp, -11.0_wp ]
-     theta_start(1:np_full,6)  = [ 0.5_wp, 0.5_wp, 1.0_wp,  -5.0_wp, -30.0_wp ]
-     theta_start(1:np_full,7)  = [ 2.0_wp, 2.0_wp, 2.0_wp,  -5.0_wp, -10.0_wp ]
-     theta_start(1:np_full,8)  = [ 0.1_wp, 1.0_wp, 1.0_wp,  -1.0_wp,  -5.0_wp ]
-     theta_start(1:np_full,9)  = [ 0.1_wp, 0.5_wp, 0.5_wp,  -0.5_wp,  -5.0_wp ]
-     theta_start(1:np_full,10) = [ 1.0_wp, 2.0_wp, 0.5_wp,  -0.5_wp, -50.0_wp ]
-     theta_start(1:np_full,11) = [ 0.3_wp, 0.4_wp, 2.5_wp, -10.0_wp, -25.0_wp ]
-     theta_start(1:np_full,12) = [ 0.7_wp, 0.8_wp, 1.5_wp,  -7.0_wp, -30.0_wp ]
-     theta_start(1:np_full,13) = [ 1.5_wp, 0.5_wp, 2.0_wp, -12.0_wp, -40.0_wp ]
-     theta_start(1:np_full,14) = [ 2.0_wp, 1.5_wp, 0.5_wp, -20.0_wp, -15.0_wp ]
-     theta_start(1:np_full,15) = [ 0.2_wp, 0.9_wp, 3.0_wp,  -3.0_wp, -35.0_wp ]
-     theta_start(1:np_full,16) = [ 0.8_wp, 1.0_wp, 2.5_wp,  -8.0_wp, -20.0_wp ]
-     theta_start(1:np_full,17) = [ 1.2_wp, 2.0_wp, 1.0_wp,  -5.0_wp, -50.0_wp ]
-     theta_start(1:np_full,18) = [ 1.0_wp, 1.2_wp, 0.8_wp, -18.0_wp, -70.0_wp ]
-     theta_start(1:np_full,19) = [ 0.4_wp, 0.6_wp, 2.2_wp, -15.0_wp, -60.0_wp ]
-     theta_start(1:np_full,20) = [ 0.5_wp, 1.8_wp, 1.2_wp, -25.0_wp, -85.0_wp ]
-  else if (model_variant == RUST_MODEL_HOMOGENEOUS) then
-     ! 4 parameters: lambda, q1, beta, cost
-     theta_start(1:np_restr,1)  = [ 0.1_wp, 2.0_wp,  -8.0_wp, -20.0_wp ]
-     theta_start(1:np_restr,2)  = [ 0.2_wp, 2.0_wp,  -2.0_wp, -20.0_wp ]
-     theta_start(1:np_restr,3)  = [ 1.0_wp, 1.0_wp,  -1.0_wp, -10.0_wp ]
-     theta_start(1:np_restr,4)  = [ 0.5_wp, 1.0_wp,  -1.0_wp, -20.0_wp ]
-     theta_start(1:np_restr,5)  = [ 0.1_wp, 0.5_wp,  -3.0_wp, -11.0_wp ]
-     theta_start(1:np_restr,6)  = [ 0.5_wp, 1.0_wp,  -5.0_wp, -30.0_wp ]
-     theta_start(1:np_restr,7)  = [ 2.0_wp, 2.0_wp,  -5.0_wp, -10.0_wp ]
-     theta_start(1:np_restr,8)  = [ 0.1_wp, 1.0_wp,  -1.0_wp,  -5.0_wp ]
-     theta_start(1:np_restr,9)  = [ 0.1_wp, 0.5_wp,  -0.5_wp,  -5.0_wp ]
-     theta_start(1:np_restr,10) = [ 1.0_wp, 0.5_wp,  -0.5_wp, -50.0_wp ]
-     theta_start(1:np_restr,11) = [ 0.3_wp, 2.5_wp, -10.0_wp, -25.0_wp ]
-     theta_start(1:np_restr,12) = [ 0.7_wp, 1.5_wp,  -7.0_wp, -30.0_wp ]
-     theta_start(1:np_restr,13) = [ 1.5_wp, 2.0_wp, -12.0_wp, -40.0_wp ]
-     theta_start(1:np_restr,14) = [ 2.0_wp, 0.5_wp, -20.0_wp, -15.0_wp ]
-     theta_start(1:np_restr,15) = [ 0.2_wp, 3.0_wp,  -3.0_wp, -35.0_wp ]
-     theta_start(1:np_restr,16) = [ 0.8_wp, 2.5_wp,  -8.0_wp, -20.0_wp ]
-     theta_start(1:np_restr,17) = [ 1.2_wp, 1.0_wp,  -5.0_wp, -50.0_wp ]
-     theta_start(1:np_restr,18) = [ 1.0_wp, 0.8_wp, -18.0_wp, -70.0_wp ]
-     theta_start(1:np_restr,19) = [ 0.4_wp, 2.2_wp, -15.0_wp, -60.0_wp ]
-     theta_start(1:np_restr,20) = [ 0.5_wp, 1.2_wp, -25.0_wp, -85.0_wp ]
-  else
-     ! 3 parameters: q1, beta, cost (lambdas fixed at 1.0)
-     theta_start(1:np_abbe,1)  = [ 2.0_wp,  -8.0_wp, -20.0_wp ]
-     theta_start(1:np_abbe,2)  = [ 2.0_wp,  -2.0_wp, -20.0_wp ]
-     theta_start(1:np_abbe,3)  = [ 1.0_wp,  -1.0_wp, -10.0_wp ]
-     theta_start(1:np_abbe,4)  = [ 1.0_wp,  -1.0_wp, -20.0_wp ]
-     theta_start(1:np_abbe,5)  = [ 0.5_wp,  -3.0_wp, -11.0_wp ]
-     theta_start(1:np_abbe,6)  = [ 1.0_wp,  -5.0_wp, -30.0_wp ]
-     theta_start(1:np_abbe,7)  = [ 2.0_wp,  -5.0_wp, -10.0_wp ]
-     theta_start(1:np_abbe,8)  = [ 1.0_wp,  -1.0_wp,  -5.0_wp ]
-     theta_start(1:np_abbe,9)  = [ 0.5_wp,  -0.5_wp,  -5.0_wp ]
-     theta_start(1:np_abbe,10) = [ 0.5_wp,  -0.5_wp, -50.0_wp ]
-     theta_start(1:np_abbe,11) = [ 2.5_wp, -10.0_wp, -25.0_wp ]
-     theta_start(1:np_abbe,12) = [ 1.5_wp,  -7.0_wp, -30.0_wp ]
-     theta_start(1:np_abbe,13) = [ 2.0_wp, -12.0_wp, -40.0_wp ]
-     theta_start(1:np_abbe,14) = [ 0.5_wp, -20.0_wp, -15.0_wp ]
-     theta_start(1:np_abbe,15) = [ 3.0_wp,  -3.0_wp, -35.0_wp ]
-     theta_start(1:np_abbe,16) = [ 2.5_wp,  -8.0_wp, -20.0_wp ]
-     theta_start(1:np_abbe,17) = [ 1.0_wp,  -5.0_wp, -50.0_wp ]
-     theta_start(1:np_abbe,18) = [ 0.8_wp, -18.0_wp, -70.0_wp ]
-     theta_start(1:np_abbe,19) = [ 2.2_wp, -15.0_wp, -60.0_wp ]
-     theta_start(1:np_abbe,20) = [ 1.2_wp, -25.0_wp, -85.0_wp ]
-   end if
+#if defined(MODEL_ABBE)
+  ! 3 parameters: q1, beta, cost (lambdas fixed at 1.0)
+  theta_start(1:np_abbe,1)  = [ 2.0_wp,  -8.0_wp, -20.0_wp ]
+  theta_start(1:np_abbe,2)  = [ 2.0_wp,  -2.0_wp, -20.0_wp ]
+  theta_start(1:np_abbe,3)  = [ 1.0_wp,  -1.0_wp, -10.0_wp ]
+  theta_start(1:np_abbe,4)  = [ 1.0_wp,  -1.0_wp, -20.0_wp ]
+  theta_start(1:np_abbe,5)  = [ 0.5_wp,  -3.0_wp, -11.0_wp ]
+  theta_start(1:np_abbe,6)  = [ 1.0_wp,  -5.0_wp, -30.0_wp ]
+  theta_start(1:np_abbe,7)  = [ 2.0_wp,  -5.0_wp, -10.0_wp ]
+  theta_start(1:np_abbe,8)  = [ 1.0_wp,  -1.0_wp,  -5.0_wp ]
+  theta_start(1:np_abbe,9)  = [ 0.5_wp,  -0.5_wp,  -5.0_wp ]
+  theta_start(1:np_abbe,10) = [ 0.5_wp,  -0.5_wp, -50.0_wp ]
+  theta_start(1:np_abbe,11) = [ 2.5_wp, -10.0_wp, -25.0_wp ]
+  theta_start(1:np_abbe,12) = [ 1.5_wp,  -7.0_wp, -30.0_wp ]
+  theta_start(1:np_abbe,13) = [ 2.0_wp, -12.0_wp, -40.0_wp ]
+  theta_start(1:np_abbe,14) = [ 0.5_wp, -20.0_wp, -15.0_wp ]
+  theta_start(1:np_abbe,15) = [ 3.0_wp,  -3.0_wp, -35.0_wp ]
+  theta_start(1:np_abbe,16) = [ 2.5_wp,  -8.0_wp, -20.0_wp ]
+  theta_start(1:np_abbe,17) = [ 1.0_wp,  -5.0_wp, -50.0_wp ]
+  theta_start(1:np_abbe,18) = [ 0.8_wp, -18.0_wp, -70.0_wp ]
+  theta_start(1:np_abbe,19) = [ 2.2_wp, -15.0_wp, -60.0_wp ]
+  theta_start(1:np_abbe,20) = [ 1.2_wp, -25.0_wp, -85.0_wp ]
+#elif defined(MODEL_HOMOGENEOUS)
+  ! 4 parameters: lambda, q1, beta, cost
+  theta_start(1:np_restr,1)  = [ 0.1_wp, 2.0_wp,  -8.0_wp, -20.0_wp ]
+  theta_start(1:np_restr,2)  = [ 0.2_wp, 2.0_wp,  -2.0_wp, -20.0_wp ]
+  theta_start(1:np_restr,3)  = [ 1.0_wp, 1.0_wp,  -1.0_wp, -10.0_wp ]
+  theta_start(1:np_restr,4)  = [ 0.5_wp, 1.0_wp,  -1.0_wp, -20.0_wp ]
+  theta_start(1:np_restr,5)  = [ 0.1_wp, 0.5_wp,  -3.0_wp, -11.0_wp ]
+  theta_start(1:np_restr,6)  = [ 0.5_wp, 1.0_wp,  -5.0_wp, -30.0_wp ]
+  theta_start(1:np_restr,7)  = [ 2.0_wp, 2.0_wp,  -5.0_wp, -10.0_wp ]
+  theta_start(1:np_restr,8)  = [ 0.1_wp, 1.0_wp,  -1.0_wp,  -5.0_wp ]
+  theta_start(1:np_restr,9)  = [ 0.1_wp, 0.5_wp,  -0.5_wp,  -5.0_wp ]
+  theta_start(1:np_restr,10) = [ 1.0_wp, 0.5_wp,  -0.5_wp, -50.0_wp ]
+  theta_start(1:np_restr,11) = [ 0.3_wp, 2.5_wp, -10.0_wp, -25.0_wp ]
+  theta_start(1:np_restr,12) = [ 0.7_wp, 1.5_wp,  -7.0_wp, -30.0_wp ]
+  theta_start(1:np_restr,13) = [ 1.5_wp, 2.0_wp, -12.0_wp, -40.0_wp ]
+  theta_start(1:np_restr,14) = [ 2.0_wp, 0.5_wp, -20.0_wp, -15.0_wp ]
+  theta_start(1:np_restr,15) = [ 0.2_wp, 3.0_wp,  -3.0_wp, -35.0_wp ]
+  theta_start(1:np_restr,16) = [ 0.8_wp, 2.5_wp,  -8.0_wp, -20.0_wp ]
+  theta_start(1:np_restr,17) = [ 1.2_wp, 1.0_wp,  -5.0_wp, -50.0_wp ]
+  theta_start(1:np_restr,18) = [ 1.0_wp, 0.8_wp, -18.0_wp, -70.0_wp ]
+  theta_start(1:np_restr,19) = [ 0.4_wp, 2.2_wp, -15.0_wp, -60.0_wp ]
+  theta_start(1:np_restr,20) = [ 0.5_wp, 1.2_wp, -25.0_wp, -85.0_wp ]
+#else
+  ! 5 parameters: lambda1, lambda2, q1, beta, cost
+  theta_start(1:np_full,1)  = [ 0.1_wp, 0.2_wp, 2.0_wp,  -8.0_wp, -20.0_wp ]
+  theta_start(1:np_full,2)  = [ 0.2_wp, 0.5_wp, 2.0_wp,  -2.0_wp, -20.0_wp ]
+  theta_start(1:np_full,3)  = [ 1.0_wp, 1.0_wp, 1.0_wp,  -1.0_wp, -10.0_wp ]
+  theta_start(1:np_full,4)  = [ 0.5_wp, 1.0_wp, 1.0_wp,  -1.0_wp, -20.0_wp ]
+  theta_start(1:np_full,5)  = [ 0.1_wp, 0.2_wp, 0.5_wp,  -3.0_wp, -11.0_wp ]
+  theta_start(1:np_full,6)  = [ 0.5_wp, 0.5_wp, 1.0_wp,  -5.0_wp, -30.0_wp ]
+  theta_start(1:np_full,7)  = [ 2.0_wp, 2.0_wp, 2.0_wp,  -5.0_wp, -10.0_wp ]
+  theta_start(1:np_full,8)  = [ 0.1_wp, 1.0_wp, 1.0_wp,  -1.0_wp,  -5.0_wp ]
+  theta_start(1:np_full,9)  = [ 0.1_wp, 0.5_wp, 0.5_wp,  -0.5_wp,  -5.0_wp ]
+  theta_start(1:np_full,10) = [ 1.0_wp, 2.0_wp, 0.5_wp,  -0.5_wp, -50.0_wp ]
+  theta_start(1:np_full,11) = [ 0.3_wp, 0.4_wp, 2.5_wp, -10.0_wp, -25.0_wp ]
+  theta_start(1:np_full,12) = [ 0.7_wp, 0.8_wp, 1.5_wp,  -7.0_wp, -30.0_wp ]
+  theta_start(1:np_full,13) = [ 1.5_wp, 0.5_wp, 2.0_wp, -12.0_wp, -40.0_wp ]
+  theta_start(1:np_full,14) = [ 2.0_wp, 1.5_wp, 0.5_wp, -20.0_wp, -15.0_wp ]
+  theta_start(1:np_full,15) = [ 0.2_wp, 0.9_wp, 3.0_wp,  -3.0_wp, -35.0_wp ]
+  theta_start(1:np_full,16) = [ 0.8_wp, 1.0_wp, 2.5_wp,  -8.0_wp, -20.0_wp ]
+  theta_start(1:np_full,17) = [ 1.2_wp, 2.0_wp, 1.0_wp,  -5.0_wp, -50.0_wp ]
+  theta_start(1:np_full,18) = [ 1.0_wp, 1.2_wp, 0.8_wp, -18.0_wp, -70.0_wp ]
+  theta_start(1:np_full,19) = [ 0.4_wp, 0.6_wp, 2.2_wp, -15.0_wp, -60.0_wp ]
+  theta_start(1:np_full,20) = [ 0.5_wp, 1.8_wp, 1.2_wp, -25.0_wp, -85.0_wp ]
+#endif
 
   ! Initialize the model
   call rust_model_init(model, DATA_TYPE=RUST_DATA_DT, DELTA=1.0_wp, &

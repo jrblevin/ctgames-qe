@@ -6,3 +6,6 @@ mc1p/logs
 mcnp/TAGS
 mcnp/mcnp
 mcnp/*__genmod.f90
+mc1p/rustct-abbe
+mc1p/rustct-heterogeneous
+mc1p/rustct-homogeneous

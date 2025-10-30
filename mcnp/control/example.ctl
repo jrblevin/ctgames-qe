@@ -13,7 +13,6 @@ delta       1.00
 discrete    T
 nvf         100
 prmod       0
-restart     example-restart.ctl
 
 # Model Parameters:
 #            lam_l   lam_h   gam   kap   eta   fc

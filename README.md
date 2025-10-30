@@ -55,6 +55,7 @@ Data files: `mc1p/data/*.asc`
   - LAPACK and BLAS libraries (or Intel MKL as alternative)
   - OpenMP support (included with above compilers)
   - GNU Make
+  - R (for statistical calculations in Table 2 generation)
 
 The code has been tested with both GNU Fortran and Intel Fortran.  The Makefiles
 will use GNU Fortran by default.  To use the Intel Fortran compiler, prefix the
@@ -71,6 +72,8 @@ etc. may still produce slightly different results.
 
 ### Hardware Requirements
 
+#### Single Agent Model (Tables 1-3)
+
 It is possible to run the single-agent renewal model estimation and Monte Carlo
 experiments on a standard 2025 desktop computer.  The quality ladder model Monte
 Carlo experiments are more computationally intensive and were carried out on a
@@ -83,6 +86,8 @@ tested and easily completes in a few minutes on a 2023 MacBook Pro.
 The `mc1p` single agent Monte Carlo experiments and timing exercises have were
 tested on a 2019 Mac Pro workstation (2.5 GHz 28-Core Intel Xeon W processor),
 where the full set of experiments completed in around 5 minutes.
+
+#### Quality Ladder Model (Tables 4-5)
 
 The `mcnp` quality ladder model Monte Carlo experiments involve repeatedly
 solving for the equilibrium of a complex dynamic game with many firms.  These
@@ -190,19 +195,19 @@ OMP_NUM_THREADS=1 ./mcnp control/example.ctl
 On Debian/Ubuntu Linux:
 
 ```bash
-sudo apt-get install gfortran liblapack-dev libblas-dev
+sudo apt-get install gfortran liblapack-dev libblas-dev r-base
 ```
 
 On CentOS/RHEL Linux:
 
 ```bash
-sudo yum install gcc-gfortran lapack-devel blas-devel
+sudo yum install gcc-gfortran lapack-devel blas-devel R
 ```
 
 On macOS with Homebrew:
 
 ```bash
-brew install gcc
+brew install gcc r
 ```
 
 macOS provides BLAS and LAPACK through the Accelerate framework.
@@ -279,15 +284,17 @@ integer, parameter :: np_theta = np_full
 ### Single-Agent Monte Carlo Experiments (Table 3)
 
 To execute all of the single-agent model Monte Carlo experiments reported in
-Table 3, you can use the `mc.sh` shell script:
+Table 3, you can use the `table_3.sh` script:
 
 ```bash
 cd mc1p
-./mc.sh
+./table_3.sh
 ```
 
-This script runs all specifications reported in the paper and prints the
-results as a complete LaTeX table.
+This script runs all specifications reported in the paper and:
+- Saves the complete LaTeX table to `results/table_3.tex`
+- Saves individual experiment logs to `logs/`
+- Displays the results to the console
 
 Alternatively, you can run a single specification by using the appropriate
 control file.  For example:
@@ -313,22 +320,35 @@ line:
 
 All control files are provided in the `control/` directory.
 
-**Table 4:**: To produce the model size and computational time results,
-use the timing control files:
+#### Table 4
+
+The "Obtain V" column is not intended to be replicated exactly.
+The timing will depend on your system characteristics.
+To produce the table automatically, simply run `table_4.sh`:
+
+```bash
+cd mcnp
+./table_4.sh
+```
+
+This script will run the `mcnp` program with each of the timing
+control files, like so:
 
 ```bash
 ./mcnp control/time-02.ctl
 ./mcnp control/time-04.ctl
-./mcnp control/time-06.ctl
-./mcnp control/time-08.ctl
 ...
 ./mcnp control/time-30.ctl
 ```
 
 The number of states is reported as `nk` along with the elapsed time to compute
-the value function.
+the value function.  The `table_4.sh` script automatically saves log files for
+each specification, extracts the relevant values from the log files, and produces
+Table 4 in LaTeX format.
 
-**Table 5:** To produce the Monte Carlo results for a given number of firms `nn`
+#### Table 5
+
+To produce the Monte Carlo results for a given number of firms `nn`
 and discrete time observation interval `delta`, use the provided control files
 named `mc-<nn>-<delta>.ctl`.  For example, the experiment with `nn = 4` firms
 and `delta = 1.0` was produced by the following command:
@@ -337,18 +357,18 @@ and `delta = 1.0` was produced by the following command:
 ./mcnp control/mc-04-1.0.ctl
 ```
 
-To produce all results reported in the table, you will need to run each
-specification:
+The recommended sequence and parallelization to produce all results reported in
+the table is:
 
 ```bash
-./mcnp control/mc-02-0.0.ctl
-./mcnp control/mc-02-1.0.ctl
-./mcnp control/mc-04-0.0.ctl
-./mcnp control/mc-04-1.0.ctl
-./mcnp control/mc-06-0.0.ctl
-./mcnp control/mc-06-1.0.ctl
-./mcnp control/mc-08-0.0.ctl
-./mcnp control/mc-08-1.0.ctl
+OMP_NUM_THREADS=2 ./mcnp control/mc-02-0.0.ctl
+OMP_NUM_THREADS=2 ./mcnp control/mc-02-1.0.ctl
+OMP_NUM_THREADS=4 ./mcnp control/mc-04-0.0.ctl
+OMP_NUM_THREADS=4 ./mcnp control/mc-04-1.0.ctl
+OMP_NUM_THREADS=4 ./mcnp control/mc-06-0.0.ctl
+OMP_NUM_THREADS=4 ./mcnp control/mc-06-1.0.ctl
+OMP_NUM_THREADS=8 ./mcnp control/mc-08-0.0.ctl
+OMP_NUM_THREADS=8 ./mcnp control/mc-08-1.0.ctl
 ```
 
 ### Parallel Execution
@@ -391,33 +411,17 @@ for this small model exceeds the benefits.
 The provided code reproduces all tables in the paper.  Figures in the paper do
 not require code.
 
-| Output  | Program                            | Description                                     | Runtime        |
-|---------|------------------------------------|-------------------------------------------------|----------------|
-| Table 1 | `rustct`                           | Rust (1987) Sample Characteristics              | 30 sec         |
-| Table 2 | `rustct`                           | Model Estimates Based on Data from Rust (1987)  | 30 sec         |
-| Table 3 | `mc1p control/mc-<delta>-<nm>.ctl` | Single Agent Renewal Model Monte Carlo Results  | 5 min          |
-| Table 4 | `mcnp control/time-<nn>.ctl`       | Quality Ladder Model Monte Carlo Specifications | 1 sec - 10 hr  |
-| Table 5 | `mcnp control/mc-<nn>-<delta>.ctl` | Quality Ladder Model Monte Carlo Results        | 5 min - 5 days |
+| Output  | Program                            | Description                                     | Hardware Used        | Runtime         | Output File                |
+|---------|------------------------------------|-------------------------------------------------|----------------------|-----------------|----------------------------|
+| Table 1 | `mc1p/table_1_2.sh`                | Rust (1987) Sample Characteristics              | 2023 MacBook Pro     | 30 sec          | `mc1p/results/table_1.tex` |
+| Table 2 | `mc1p/table_1_2.sh`                | Model Estimates Based on Data from Rust (1987)  | 2023 MacBook Pro     | 30 sec          | `mc1p/results/table_2.tex` |
+| Table 3 | `mc1p/table_3.sh`                  | Single Agent Renewal Model Monte Carlo Results  | 2023 MacBook Pro     | 10 min          | `mc1p/results/table_3.tex` |
+| Table 4 | `mcnp/table_4.sh`                  | Quality Ladder Model Monte Carlo Specifications | 2019 Mac Pro         | 1 sec - 10 hr   | Console output             |
+| Table 5 | `mcnp/table_5.sh`                  | Quality Ladder Model Monte Carlo Results        | HPC Cluster          | 5 min - 21 days | `mc1p/results/table_5.tex` |
+| All     | `main.sh`                          | Builds binaries and produces all tables         | HPC Cluster          |                 | All above                  |
 
-`<delta>` denotes the discrete observation time interval:
-
-  - `0.00`, `1.00`, and `8.00` for Table 3
-  - `0.0` and `1.0` for Table 5
-
-`<nm>` denotes the number of markets observed:
-
-  - `200`, `800`, and `3200` for Table 3
-
-`<nn>` denotes the number of firms:
-
-  - `02` through `30` for Table 4
-  - `02` through `08` for Table 5
-
-As described above, each of these programs (and for each control file), produces
-console output corresponding to rows of the tables.  Researchers will need to
-run each program with each specification to reproduce the complete tables.
-Specific details are given for each table below.  The results obtained by the
-author are provided in the respective `mc1p/logs/` and `mcnp/logs/` directories.
+Original log files obtained by the author are provided in the respective
+`mc1p/logs/` and `mcnp/logs/` directories.
 
 ## References
 

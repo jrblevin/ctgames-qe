@@ -79,6 +79,77 @@ data NAMES / "Grumman 870      ", &
 
 contains
 
+  ! Write sample characteristics table to LaTeX file
+  subroutine write_sample_table(groups)
+    integer, dimension(:), intent(in) :: groups
+    integer :: i, group_idx
+    integer :: total_buses, total_bus_months, bus_months
+    integer :: file_unit
+    character(len=100) :: filename
+    character(len=10) :: bus_months_str
+
+    filename = "results/table_1.tex"
+    file_unit = 20
+    open(file_unit, file=filename, status='replace')
+
+    ! Write LaTeX table header
+    write(file_unit, '(a)') "\begin{table}[tbh]"
+    write(file_unit, '(a)') "  \centering"
+    write(file_unit, '(a)') "  \begin{tabular}{lrrrr}"
+    write(file_unit, '(a)') "    \hline"
+    write(file_unit, '(a)') "    \hline"
+    write(file_unit, '(a)') "    Bus   &       & Months  &            \\"
+    write(file_unit, '(a)') "    Group & Buses & Per Bus & Bus-Months \\"
+    write(file_unit, '(a)') "    \hline"
+
+    ! Write data for each group
+    total_buses = 0
+    total_bus_months = 0
+    do i = 1, size(groups)
+      group_idx = groups(i)
+      bus_months = NOBS(group_idx) * (NPER(group_idx) - 1)
+
+      ! Format bus-months with comma for thousands
+      if (bus_months >= 1000) then
+        write(bus_months_str, '(i1,",",i3.3)') bus_months/1000, mod(bus_months, 1000)
+      else
+        write(bus_months_str, '(i8)') bus_months
+      end if
+
+      write(file_unit, '("    ", i5, " & ", i5, " & ", i7, " & ", a10, " \\")') &
+        group_idx, &
+        NOBS(group_idx), &
+        NPER(group_idx) - 1, &
+        adjustr(trim(bus_months_str))
+
+      total_buses = total_buses + NOBS(group_idx)
+      total_bus_months = total_bus_months + bus_months
+    end do
+
+    ! Write totals and footer
+    write(file_unit, '(a)') "    \hline"
+
+    ! Format total bus-months with comma
+    if (total_bus_months >= 10000) then
+      write(bus_months_str, '(i2,",",i3.3)') total_bus_months/1000, mod(total_bus_months, 1000)
+    else if (total_bus_months >= 1000) then
+      write(bus_months_str, '(i1,",",i3.3)') total_bus_months/1000, mod(total_bus_months, 1000)
+    else
+      write(bus_months_str, '(i8)') total_bus_months
+    end if
+
+    write(file_unit, '("    Total & ", i5, " &      -- & ", a10, " \\")') &
+      total_buses, adjustr(trim(bus_months_str))
+    write(file_unit, '(a)') "    \hline"
+    write(file_unit, '(a)') "  \end{tabular}"
+    write(file_unit, '(a)') "  \caption{\cite{rust87optimal} Sample Characteristics}"
+    write(file_unit, '(a)') "  \label{tab:mc1p:rustct:data}"
+    write(file_unit, '(a)') "\end{table}"
+
+    close(file_unit)
+    print '("* Sample statistics written to ", a)', trim(filename)
+  end subroutine write_sample_table
+
   ! Load the specified bus GROUPS.
   subroutine rust_data_load_groups(data, groups)
     type(dataset_t), intent(inout) :: data
@@ -111,6 +182,9 @@ contains
           group_idx, count, NOBS(group_idx), NPER(group_idx) - 1
     end do
     print '("* Loaded ", i6, " observations in total.")', dataset_size(data)
+
+    ! Write Table 1 to LaTeX file
+    call write_sample_table(groups)
   end subroutine rust_data_load_groups
 
   ! Load data for a particular bus GROUP and return the choices and

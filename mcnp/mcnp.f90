@@ -1,6 +1,6 @@
 ! mcnp.f90 --- control program for quality ladder Monte Carlo experiments
 !
-! Copyright (C) 2009-2024 Jason R. Blevins
+! Copyright (C) 2009-2025 Jason R. Blevins
 ! All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
@@ -50,31 +50,33 @@ program mcnp
   ! L-BFGS-B Optimization
   real(wp) :: eps_lbfgs = 1.0e-8_wp
   real(wp) :: pgtol_lbfgs = 1.0e-9_wp
-  integer :: iprint_lbfgs = 1
+  integer :: iprint_lbfgs = -1  ! Quiet mode by default
   integer, parameter :: n_start = 3
   real(wp), dimension(np,n_start) :: theta_start
   real(wp), dimension(np) :: theta_current, theta_best
   real(wp) :: ll_current, ll_best
 
   ! Monte Carlo Results
-  real(wp), dimension(np) :: theta_mean, theta_stdev, theta_bias, theta_rmse, theta_median_bias
   real(wp), dimension(:,:), allocatable :: theta_mc
   real(wp), dimension(:), allocatable :: ll_mc, ll_true
   integer :: start_mc = 0
-
-  ! Timer variables
-  integer :: count0, count1, count_rate
-  real(wp) :: time
+  integer :: end_mc = 0                           ! End replication (0 = use nmc)
 
   ! Command-line arguments
   character(len=1000) :: ctrl_file
-  character(len=1000) :: restart_file
+
+  ! Environment variable support for parallel execution
+  character(len=1000) :: env_val
+  character(len=1000) :: results_file = ''
+  integer :: total_cores
 
   call osl_print_heading('CTGAMES MCNP QUALITY LADDER MONTE CARLO EXPERIMENTS')
 
+  call osl_print_subheading('System Information')
   print *, 'Compiler: ' // compiler_version()
   print *, 'Compiler options: ' // compiler_options()
-  print *, 'OMP Num. Processors: ', omp_get_num_procs()
+  total_cores = omp_get_num_procs()
+  print *, 'OMP Num. Processors: ', total_cores
   !$OMP PARALLEL
   if (omp_get_thread_num() == 0) then
      print *, 'OMP Num. Threads: ', omp_get_num_threads()
@@ -83,7 +85,6 @@ program mcnp
 
   ! Default values
   start_mc = 1
-  restart_file = 'restart.ctl'
 
   ! Read command-line arguments
   if (command_argument_count() < 1) then
@@ -107,21 +108,39 @@ program mcnp
   call osl_print('theta0:', theta0)
 
   if (nmc == 0) then
+
      ! Solve and report timing only
-     call model_reset(theta0)
-  else
-     ! If restarting previous Monte Carlo experiment
-     if (start_mc > 0) then
-        call osl_print("Previously completed Monte Carlo experiments: ", start_mc - 1)
-        call osl_print('theta_mc:', transpose(theta_mc(:,1:start_mc-1)))
+     start_mc = 0
+     end_mc = -1
+     call osl_print_subheading('Model')
+     call model_reset(theta0, .true.)
+     call model_print()
+
+   else if (nmc > 0) then
+
+      ! Monte Carlo experiments
+     call osl_print_subheading('Monte Carlo experiments')
+
+     ! Check for environment variable overrides (for parallel execution)
+     call get_environment_variable('MC_START', env_val)
+     if (len_trim(env_val) > 0) then
+        read(env_val, *) start_mc
+        print '(a,i0)', 'Environment override: MC_START = ', start_mc
+     end if
+     call get_environment_variable('MC_END', env_val)
+     if (len_trim(env_val) > 0) then
+        read(env_val, *) end_mc
+        print '(a,i0)', 'Environment override: MC_END = ', end_mc
+     end if
+     if (end_mc == 0) end_mc = nmc
+     call get_environment_variable('MC_RESULTS_FILE', results_file)
+
+     if (end_mc < nmc) then
+        print '(a,i0,a,i0,a,i0)', 'Running a subset of replications: ', start_mc, ' through ', end_mc, ' of ', nmc
      end if
   end if
 
-  print *
-  call model_print()
-
-  ! Monte Carlo experiments
-  do r = start_mc, nmc
+  do r = start_mc, end_mc
      print '(/,A18,I4,/,22("="))', 'Monte Carlo trial ', r
 
      ! Random number generator seed
@@ -142,19 +161,9 @@ program mcnp
      ! Estimate all parameters jointly
      call osl_print_subheading("Estimation")
 
-     ! Calculate likelihood at true values, noting that the model
-     ! returns the negative log likelihood for minimization.
-     call model_log_likelihood(theta0, ll_true(r))
-     ll_true(r) = -ll_true(r)
-     call osl_print('ll(theta0) = ', ll_true(r))
-
-     ! Start timer
-     call system_clock(count0)
-
      ! Optimization by L-BFGS-B with multiple starting values
      ll_best = HUGE(1.0_wp)
      theta_best = 0.0_wp
-
      do k = 1, n_start
         theta_current = theta_start(:,k)
         call lbfgsb_min(model_log_likelihood, theta_current, &
@@ -167,50 +176,19 @@ program mcnp
            theta_best = theta_current
         endif
      end do
-
      theta_mc(:,r) = theta_best
      ll_mc(r) = -ll_best
 
-     ! Report wall time for current experiment
-     call system_clock(count1, count_rate)
-     time = real(count1 - count0) / real(count_rate)
-     print '(a,i0,a,i0,a)', 'Estimation completed in ', int(time), ' sec.'
-
-     ! Save state in case program is terminated prematurely.
-     call write_control_file(restart_file)
-
      ! Print results
-     call osl_print('theta0     = ', theta0)
      call osl_print('theta      = ', theta_mc(:,r))
-     call osl_print('ll(theta0) = ', ll_true(r))
      call osl_print('ll(theta)  = ', ll_mc(r))
 
-     ! Check to see if we did at least as good as ll(theta0).
-     ! This is an infeasible value, but it is useful as a diagnostic.
-     if (ll_mc(r) < ll_true(r)) then
-        call osl_print('WARNING: Log likelihood lower at estimates than (infeasible) true parameters.')
-     end if
-
-     ! Print results
-     if (r > 1) then
-        if (r < nmc) then
-           call osl_print_heading('Intermediate Monte Carlo Results')
-        else
-           call osl_print_heading('Final Monte Carlo Results')
-           call osl_print('theta_mc:', theta_mc)
-        end if
-        call osl_sample_stats(theta_mc(:,1:r), &
-             MEAN=theta_mean, SD=theta_stdev, &
-             TRUTH=theta0, BIAS=theta_bias, RMSE=theta_rmse)
-        theta_median_bias = osl_median(theta_mc(:,1:r)) - theta0
-        call osl_print('Mean', theta_mean)
-        call osl_print('Std. Dev.', theta_stdev)
-        call osl_print('Mean Bias', theta_bias)
-        call osl_print('Median Bias', theta_median_bias)
-        call osl_print('RMSE', theta_rmse)
-        call osl_print('Mean LL', sum(ll_mc(1:r)) / real(r, wp))
-     end if
   end do
+
+  ! Write results to file if requested (for parallel execution)
+  if (len_trim(results_file) > 0) then
+     call write_partial_results()
+  end if
 
   call model_free()
 
@@ -219,6 +197,26 @@ program mcnp
   deallocate(ll_true)
 
 contains
+
+  ! Write partial Monte Carlo results to file
+  subroutine write_partial_results()
+    integer :: fh, r_idx
+
+    open(newunit=fh, file=trim(results_file), action='write', status='replace')
+
+    ! Write header
+    write(fh, '(a)') '# Partial Monte Carlo Results'
+    write(fh, '(a,i0,a,i0)') '# Replications ', start_mc, ' through ', end_mc
+    write(fh, '(a)') '# lambda_L lambda_H gamma kappa eta fc'
+
+    ! Write data (one line per replication)
+    do r_idx = start_mc, end_mc
+       write(fh, '(6(1x,es24.16))') theta_mc(:,r_idx)
+    end do
+
+    close(fh)
+    print '(a,a)', 'Partial results written to: ', trim(results_file)
+  end subroutine write_partial_results
 
   ! Read whitespace-separated control file FILENAME.
   subroutine read_control_file(filename)
@@ -314,8 +312,6 @@ contains
              read(buffer, *, iostat=ios) pgtol_lbfgs
           case ('iprint_lbfgs')
              read(buffer, *, iostat=ios) iprint_lbfgs
-          case ('restart')
-             read(buffer, *, iostat=ios) restart_file
 
           ! Comments
           case ('#')
@@ -329,110 +325,5 @@ contains
 
     close(fh)
   end subroutine read_control_file
-
-  ! Write a control file suitable for restarting FILENAME.
-  subroutine write_control_file(filename)
-    character(len=*), intent(in) :: filename
-    integer, parameter :: fh = 15
-    integer :: j
-
-    open(fh, file=trim(filename))
-
-    call write_comment(fh, trim(filename) // '     -*-conf-*-')
-    call write_blank(fh)
-    call write_comment(fh, 'Model')
-    call write_int(fh, 'nn', nn)
-    call write_int(fh, 'nw', nw)
-    call write_int(fh, 'we', we)
-    call write_rwp(fh, 'mktsize', mktsize)
-    call write_rwp(fh, 'rho', rho)
-    call write_int(fh, 'maxiter', maxiter)
-    call write_rwp(fh, 'vf_tol', vf_tol)
-    call write_rwp(fh, 'Q_tol', Q_tol)
-    call write_log(fh, 'discrete', DISCRETE_TIME)
-    call write_rwp(fh, 'delta', DELTA)
-    call write_int(fh, 'nvf', nvf)
-    call write_str(fh, 'restart', restart_file)
-
-    call write_blank(fh)
-    call write_comment(fh, 'Model Parameters')
-    call write_vec(fh, 'theta', theta0)
-
-    call write_blank(fh)
-    call write_comment(fh, 'L-BFGS-B Optimization')
-    call write_rwp(fh, 'eps_lbfgs', eps_lbfgs)
-    call write_rwp(fh, 'pgtol_lbfgs', pgtol_lbfgs)
-    call write_int(fh, 'iprint_lbfgs', iprint_lbfgs)
-
-    call write_blank(fh)
-    call write_comment(fh, 'Monte Carlo parameters')
-    call write_int(fh, 'nmc', nmc)
-    call write_int(fh, 'nm', nm)
-    call write_int(fh, 'nt', nt)
-
-    call write_blank(fh)
-    call write_comment(fh, 'Previous Results')
-    call write_int(fh, 'start_mc', r+1)
-    do j = 1, r
-       call write_vec(fh, 'theta_mc', theta_mc(:,j)) ! Previous Monte Carlo estimates
-    end do
-    close(fh)
-  end subroutine write_control_file
-
-  subroutine write_blank(fh)
-    integer, intent(in) :: fh
-    write(fh, '("")')
-  end subroutine write_blank
-
-  subroutine write_comment(fh, comment)
-    integer, intent(in) :: fh
-    character(len=*), intent(in) :: comment
-    write(fh, '("# ", A)') adjustl(comment)
-  end subroutine write_comment
-
-  subroutine write_int(fh, label, n)
-    integer, intent(in) :: fh
-    character(len=*), intent(in) :: label
-    integer, intent(in) :: n
-    character(len=20) :: label_
-    label_ = label
-    write(fh, '(a11,i0)') adjustl(label_), n
-  end subroutine write_int
-
-  subroutine write_rwp(fh, label, x)
-    integer, intent(in) :: fh
-    character(len=*), intent(in) :: label
-    real(wp), intent(in) :: x
-    character(len=20) :: label_
-    label_ = label
-    write(fh, '(a11,g22.15)') adjustl(label_), x
-  end subroutine write_rwp
-
-  subroutine write_vec(fh, label, v)
-    integer, intent(in) :: fh
-    character(len=*), intent(in) :: label
-    real(wp), dimension(:), intent(in) :: v
-    character(len=20) :: label_
-    label_ = label
-    write(fh, '(a11,999g22.15)') adjustl(label_), v
-  end subroutine write_vec
-
-  subroutine write_log(fh, label, b)
-    integer, intent(in) :: fh
-    character(len=*), intent(in) :: label
-    logical, intent(in) :: b
-    character(len=20) :: label_
-    label_ = label
-    write(fh, '(a11,L1)') adjustl(label_), b
-  end subroutine write_log
-
-  subroutine write_str(fh, label, str)
-    integer, intent(in) :: fh
-    character(len=*), intent(in) :: label
-    character(len=*), intent(in) :: str
-    character(len=20) :: label_
-    label_ = label
-    write(fh, '(a11,a)') adjustl(label_), trim(str)
-  end subroutine write_str
 
 end program mcnp

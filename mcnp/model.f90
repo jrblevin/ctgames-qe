@@ -209,6 +209,7 @@ contains
           end if
        end do
     end do
+    print '(a,i0)', 'Total states: ', nk
 
     ! Check for invalid states
     print '(a)', 'Checking for invalid states...'
@@ -420,8 +421,16 @@ contains
 
   ! Resets the model to a fresh initial state, storing the "true"
   ! parameters, and resolving the model.
-  subroutine model_reset(theta)
+  subroutine model_reset(theta, verbose)
     real(wp), dimension(np), intent(in) :: theta
+    logical, intent(in), optional :: verbose
+    logical :: verbose_
+
+    if (present(verbose)) then
+      verbose_ = verbose
+    else
+      verbose_ = .false.
+    end if
 
     ! Store theta for later
     theta0 = theta
@@ -430,11 +439,15 @@ contains
     call model_set_theta(theta)
 
     ! Obtain the value function and CCPs
-    print '("Obtaining value function...")'
     v = pi ! Simple guess at initial v
-    call tic()
+    if (verbose_) then
+      print '("Obtaining value function...")'
+      call tic()
+    end if
     call model_vf_vfi()
-    call toc()
+    if (verbose_) then
+        call toc()
+    end if
     call model_ccp()
 
     ! Tests
@@ -490,8 +503,8 @@ contains
     print *, 'vf_tol: ', vf_tol
     print *, 'Q_tol: ', Q_tol
     print *
-    print *, 'lambda_low: ', lambda_low, ' (low move arrival rate)'
-    print *, 'lambda_high: ', lambda_high, ' (high move arrival rate)'
+    print *, 'lambda_L: ', lambda_low, ' (low move arrival rate)'
+    print *, 'lambda_H: ', lambda_high, ' (high move arrival rate)'
     print *, 'gamma:  ', gamma, ' (market depreciation rate)'
     print *, 'kappa:  ', kappa, ' (investment cost)'
     print *, 'eta:    ', eta, ' (entry cost)'
@@ -1504,11 +1517,11 @@ contains
 
     ! Call the appropriate data generating procedure
     if (DISCRETE_TIME) then
-       print '(a,i0,a)', 'Generating discrete-time data (seed = ', seed, ')...'
+       ! print '(a,i0,a)', 'Generating discrete-time data (seed = ', seed, ')...'
        call model_generate_data_discrete(nm, nt)
        call model_dataset_count()
     else
-       print '(a,i0,a)', 'Generating continuous-time data (seed = ', seed, ')...'
+       ! print '(a,i0,a)', 'Generating continuous-time data (seed = ', seed, ')...'
        call model_generate_data_continuous(nm, nt)
     end if
   end subroutine model_generate_data

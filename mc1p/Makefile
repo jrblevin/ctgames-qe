@@ -112,7 +112,30 @@ rustct.o: rustct.f90 $(RUSTCT_OBJS)
 rustct: $(RUSTCT_OBJS) rustct.o
 	$(FC) $(FFLAGS) -o $@ $(LIBPATH) $(RUSTCT_OBJS) rustct.o $(LIBS)
 
+# Build all three rustct variants for Table 2
+rustct-all: rustct-heterogeneous rustct-homogeneous rustct-abbe
+
+rustct-heterogeneous: $(RUSTCT_OBJS) rustct-heterogeneous.o
+	$(FC) $(FFLAGS) -o $@ $(LIBPATH) $(RUSTCT_OBJS) rustct-heterogeneous.o $(LIBS)
+
+rustct-heterogeneous.o: rustct.f90 $(RUSTCT_OBJS)
+	$(FC) $(FFLAGS) $(INCLUDE) -cpp -o $@ -c $<
+
+rustct-homogeneous: $(RUSTCT_OBJS) rustct-homogeneous.o
+	$(FC) $(FFLAGS) -o $@ $(LIBPATH) $(RUSTCT_OBJS) rustct-homogeneous.o $(LIBS)
+
+rustct-homogeneous.o: rustct.f90 $(RUSTCT_OBJS)
+	$(FC) $(FFLAGS) $(INCLUDE) -cpp -DMODEL_HOMOGENEOUS -o $@ -c $<
+
+rustct-abbe: $(RUSTCT_OBJS) rustct-abbe.o
+	$(FC) $(FFLAGS) -o $@ $(LIBPATH) $(RUSTCT_OBJS) rustct-abbe.o $(LIBS)
+
+rustct-abbe.o: rustct.f90 $(RUSTCT_OBJS)
+	$(FC) $(FFLAGS) $(INCLUDE) -cpp -DMODEL_ABBE -o $@ -c $<
+
 clean:
 	rm -f *.mod *.dat $(TARGETS) $(TARGETS:=.o)
+	rm -f rustct-heterogeneous rustct-homogeneous rustct-abbe
+	rm -f rustct-heterogeneous.o rustct-homogeneous.o rustct-abbe.o
 	rm -f $(MODEL_OBJS) $(DATASET_OBJS) $(MC1P_OBJS) $(RUSTCT_OBJS)
-	-rm -rf $(TARGETS:=.dSYM)
+	-rm -rf $(TARGETS:=.dSYM) rustct-heterogeneous.dSYM rustct-homogeneous.dSYM rustct-abbe.dSYM
