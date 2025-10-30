@@ -1,0 +1,98 @@
+Tables 1 & 2: Continuous Time Rust (1987) Model
+===============================================
+
+Required rustct binaries not found. Building...
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -I. -o osl.o -c osl.f90
+gfortran -g -gdwarf-2 -fbacktrace -O3 -funroll-loops -ftree-vectorize -o expokit/dgpadm.o -c expokit/dgpadm.f
+gfortran -g -gdwarf-2 -fbacktrace -O3 -funroll-loops -ftree-vectorize -o lbfgsb/timer.o -c lbfgsb/timer.f
+gfortran -g -gdwarf-2 -fbacktrace -O3 -funroll-loops -ftree-vectorize -o lbfgsb/linpack.o -c lbfgsb/linpack.f
+gfortran -g -gdwarf-2 -fbacktrace -O3 -funroll-loops -ftree-vectorize -o lbfgsb/lbfgsb.o -c lbfgsb/lbfgsb.f
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -I. -o lbfgsb.o -c lbfgsb.f90
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -I. -o dataset.o -c dataset.f90
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -I. -o matrix.o -c matrix.f90
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -I. -o rust_data.o -c rust_data.f90
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -I. -o rust_model.o -c rust_model.f90
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -I. -cpp -o rustct-heterogeneous.o -c rustct.f90
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -o rustct-heterogeneous  osl.o expokit/dgpadm.o lbfgsb/timer.o lbfgsb/linpack.o lbfgsb/lbfgsb.o lbfgsb.o dataset.o matrix.o rust_data.o rust_model.o rustct-heterogeneous.o -llapack -lblas -lm
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -I. -cpp -DMODEL_HOMOGENEOUS -o rustct-homogeneous.o -c rustct.f90
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -o rustct-homogeneous  osl.o expokit/dgpadm.o lbfgsb/timer.o lbfgsb/linpack.o lbfgsb/lbfgsb.o lbfgsb.o dataset.o matrix.o rust_data.o rust_model.o rustct-homogeneous.o -llapack -lblas -lm
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -I. -cpp -DMODEL_ABBE -o rustct-abbe.o -c rustct.f90
+gfortran -g -gdwarf-2 -fbacktrace -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -O3 -funroll-loops -ftree-vectorize -fopenmp -o rustct-abbe  osl.o expokit/dgpadm.o lbfgsb/timer.o lbfgsb/linpack.o lbfgsb/lbfgsb.o lbfgsb.o dataset.o matrix.o rust_data.o rust_model.o rustct-abbe.o -llapack -lblas -lm
+
+Running all three model variants in parallel...
+
+  1. ABBE model (lambda_L = lambda_H = 1.0)
+  2. Homogeneous model (lambda_L = lambda_H)
+  3. Heterogeneous model (lambda_L != lambda_H)
+
+Waiting for all models to complete (PIDs 49567 49568 49569)...
+
+All models completed successfully!
+
+  - ABBE model log: logs/rustct-abbe.log
+  - Homogeneous model log: logs/rustct-homogeneous.log
+  - Heterogeneous model log: logs/rustct-heterogeneous.log
+
+Extracting results and generating LaTeX tables...
+
+\begin{table}[tbh]
+  \centering
+  \begin{tabular}{lrrrr}
+    \hline
+    \hline
+    Bus   &       & Months  &            \\
+    Group & Buses & Per Bus & Bus-Months \\
+    \hline
+        1 &    15 &      24 &        360 \\
+        2 &     4 &      48 &        192 \\
+        3 &    48 &      69 &      3,312 \\
+        4 &    37 &     116 &      4,292 \\
+        5 &    12 &     125 &      1,500 \\
+        6 &    10 &     125 &      1,250 \\
+        7 &    18 &     125 &      2,250 \\
+        8 &    18 &     125 &      2,250 \\
+    \hline
+    Total &   162 &      -- &     15,406 \\
+    \hline
+  \end{tabular}
+  \caption{\cite{rust87optimal} Sample Characteristics}
+  \label{tab:mc1p:rustct:data}
+\end{table}
+
+Computing likelihood ratio statistics...
+LR test ABBE vs. Homogeneous: LR = 18.08, p = 0.00002
+LR test ABBE vs. Heterogeneous: LR = 19.78, p = 0.00005
+LR test Homogeneous vs. Heterogeneous): LR = 1.70, p = 0.19229
+
+\begin{table}[tbh]
+  \centering
+  \begin{tabular}{lrcrcrc}
+    \hline
+    \hline
+    & \multicolumn{2}{c}{Fixed $\lambda = 1$} & \multicolumn{2}{c}{Variable $\lambda$} & \multicolumn{2}{c}{Heterogeneous $\lambda$} \\
+                                           & Est.      & S.E.    & Est.      & S.E.    & Est.      & S.E.    \\
+    \hline
+    Decision rate   ($\lambda$)            &     1.000 &      -- &     0.032 & (0.005) &        -- &      -- \\
+    Decision rate 1 ($\lambda_{\text{L}}$) &        -- &      -- &        -- &      -- &     0.022 & (0.004) \\
+    Decision rate 2 ($\lambda_{\text{H}}$) &        -- &      -- &        -- &      -- &     0.033 & (0.005) \\
+    Mileage increase ($\gamma$)            &     0.526 & (0.006) &     0.526 & (0.006) &     0.526 & (0.006) \\
+    Mileage cost ($\beta$)                 &    -0.533 & (0.052) &    -1.257 & (0.285) &    -1.711 & (0.493) \\
+    Replacement cost ($\mu$)               &    -8.081 & (0.393) &    -8.072 & (1.345) &    -9.643 & (2.189) \\
+    \hline
+    Log likelihood                         & -13947.55 &         & -13938.51 &         & -13937.66 &         \\
+    Observations                           &     15406 &         &     15406 &         &     15406 &         \\
+    \hline
+    \multicolumn{7}{l}{Test for $H_0: \lambda_{\text{L}} = \lambda_{\text{H}}=1$}                            \\
+    \quad LR                              &         -- &         &     18.08 &         &     19.78 &         \\
+    \quad $p$-value                       &         -- &         &   0.00002 &         &   0.00005 &         \\
+    \multicolumn{7}{l}{Test for $H_0: \lambda_{\text{L}} = \lambda_{\text{H}}$}                              \\
+    \quad LR                              &         -- &         &        -- &         &      1.70 &         \\
+    \quad $p$-value                       &         -- &         &        -- &         &   0.19229 &         \\
+    \hline
+  \end{tabular}
+  \caption{Model Estimates Based on Data from \cite{rust87optimal}}
+  \label{tab:mc1p:rustct:estimates}
+\end{table}
+
+Table 1 written to results/table_1.tex
+Table 2 written to results/table_2.tex

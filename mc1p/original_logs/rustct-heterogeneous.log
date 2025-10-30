@@ -2,9 +2,9 @@
 CTGAMES RUST (1987) ESTIMATION
 ==============================
 
- Compiler: GCC version 15.1.0
- Compiler options: -I . -fPIC -mmacosx-version-min=15.0.0 -mcpu=apple-m1 -mlittle-endian -mabi=lp64 -g -gdwarf-2 -O3 -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -fbacktrace -funroll-loops -ftree-vectorize -fopenmp
- Estimating ABBE model (3 parameters, lambda1 = lambda2 = 1.0)
+ Compiler: GCC version 15.2.0
+ Compiler options: -cpp -I . -iprefix /opt/homebrew/Cellar/gcc/15.2.0/bin/../lib/gcc/current/gcc/aarch64-apple-darwin24/15/ -D__DYNAMIC__ -fPIC -mmacosx-version-min=15.0.0 -mcpu=apple-m1 -mlittle-endian -mabi=lp64 -g -gdwarf-2 -O3 -Wall -Wsurprising -Wconversion -Wno-unused -std=f2008 -fbacktrace -funroll-loops -ftree-vectorize -fopenmp
+ Estimating heterogeneous model (5 parameters)
 
 Loading Bus Data
 ----------------
@@ -18,6 +18,7 @@ Loading Bus Data
 * Group  7: Loaded   2250 observations.  18 buses with 125 months per bus
 * Group  8: Loaded   2250 observations.  18 buses with 125 months per bus
 * Loaded  15406 observations in total.
+* Sample statistics written to results/table_1.tex
 
 Observed Dataset Statistics
 ---------------------------
@@ -42,45 +43,45 @@ Unconditional replacement frequency =       0.80488E-02
 Optimization runs:
 ------------------
 
-Starting value j =   1  LL = -13947.5502306701910
-Starting value j =   2  LL = -13947.5502306704420
-Starting value j =   3  LL = -13947.5502306710114
-Starting value j =   4  LL = -13947.5502306703656
-Starting value j =   5  LL = -13947.5502306700764
-Starting value j =   6  LL = -13947.5502306697836
-Starting value j =   7  LL = -14907.8527485186714
-Starting value j =   8  LL = -13947.5502306702128
-Starting value j =   9  LL = -13947.5502306704566
-Starting value j =  10  LL = -13947.5502306699491
-Starting value j =  11  LL = -13947.5502306700455
-Starting value j =  12  LL = -13947.5502306712278
-Starting value j =  13  LL = -13947.5502306710914
-Starting value j =  14  LL = -13947.5502306699036
-Starting value j =  15  LL = -13947.5502306700910
-Starting value j =  16  LL = -13947.5502306707767
-Starting value j =  17  LL = -14398.1741150051112
-Starting value j =  18  LL = -14335.7659694045306
-Starting value j =  19  LL = -14189.2881936979302
-Starting value j =  20  LL = -14310.9906661672921
+Starting value j =   1  LL = -13937.6582158272304
+Starting value j =   2  LL = -13937.6582158263263
+Starting value j =   3  LL = -13945.6595925442907
+Starting value j =   4  LL = -13978.6383316397460
+Starting value j =   5  LL = -13937.6582158267302
+Starting value j =   6  LL = -13937.6582158255897
+Starting value j =   7  LL = -16105.6826202567063
+Starting value j =   8  LL = -13937.6582158261481
+Starting value j =   9  LL = -13937.6582158265410
+Starting value j =  10  LL = -15867.4472422782910
+Starting value j =  11  LL = -13937.6582158261172
+Starting value j =  12  LL = -14620.3910472439165
+Starting value j =  13  LL = -16115.6681820084978
+Starting value j =  14  LL = -19292.9651067441700
+Starting value j =  15  LL = -13942.4074049421488
+Starting value j =  16  LL = -14800.1276294830659
+Starting value j =  17  LL = -14271.2745528761516
+Starting value j =  18  LL = -14494.7509865588872
+Starting value j =  19  LL = -14262.5621850151620
+Starting value j =  20  LL = -16413.2374090723206
 
 Best run:
 ---------
 
 Best starting value: j =          6
-LL = -13947.5502306697836
+LL = -13937.6582158255897
 
 Results
 =======
 
 \begin{table}
   \centering
-  \begin{tabular}{lcccc}
+  \begin{tabular}{lccccc}
     \hline
     \hline
-    Sampling   & $\lambda$ & $q_1$    & $\beta$ & $c$   \\
+    Sampling   & $\lambda_1$ & $\lambda_2$ & $q_1$    & $\beta$ & $c$   \\
     \hline
-    Estimates  & 1.000  &   0.526  &  -0.533  &  -8.081  \\
-    S.E.       &  ---   &   0.006  &   0.052  &   0.393  \\
+    Estimates    &   0.022  &   0.033  &   0.526  &  -1.711  &  -9.643  \\
+    S.E.         &   0.004  &   0.005  &   0.006  &   0.493  &   2.189  \\
     \hline
   \end{tabular} \\
 \end{table}
