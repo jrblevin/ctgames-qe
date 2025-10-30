@@ -14,17 +14,17 @@ mkdir -p results
 
 # Run three model variants
 echo "Running ABBE model (lambda_L = lambda_H = 1.0)..."
-#./rustct-abbe > logs/rustct-abbe.log 2>&1
+./rustct-abbe > logs/rustct-abbe.log 2>&1
 echo "Done. Log saved to logs/rustct-abbe.log"
 echo ""
 
 echo "Running homogeneous model (lambda_L = lambda_H)..."
-#./rustct-homogeneous > logs/rustct-homogeneous.log 2>&1
+./rustct-homogeneous > logs/rustct-homogeneous.log 2>&1
 echo "Done. Log saved to logs/rustct-homogeneous.log"
 echo ""
 
 echo "Running heterogeneous model (lambda_L != lambda_H)..."
-#./rustct-heterogeneous > logs/rustct-heterogeneous.log 2>&1
+./rustct-heterogeneous > logs/rustct-heterogeneous.log 2>&1
 echo "Done. Log saved to logs/rustct-heterogeneous.log"
 echo ""
 
