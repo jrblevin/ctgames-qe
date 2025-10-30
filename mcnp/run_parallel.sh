@@ -5,6 +5,8 @@
 #
 # num_threads: OpenMP threads per process (default: 2)
 # num_processes: Computed as total_cores / num_threads
+# total_cores is detected with the nprocs command, but can be
+# overridden by setting the OMP_NUM_PROCS environment variable.
 
 set -e
 
@@ -21,7 +23,9 @@ CTL="$1"
 NUM_THREADS=${2:-2}
 
 # Detect available processors
-if command -v nproc &> /dev/null; then
+if [ -n "$OMP_NUM_PROCS" ]; then
+  TOTAL_CORES=$OMP_NUM_PROCS
+elif command -v nproc &> /dev/null; then
   TOTAL_CORES=$(nproc)
 elif command -v sysctl &> /dev/null; then
   TOTAL_CORES=$(sysctl -n hw.ncpu)
