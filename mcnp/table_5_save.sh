@@ -4,11 +4,34 @@
 #
 # This script:
 # 1. Discovers available results files in results/
-# 2. Combines partial results for each configuration
+# 2. Combines all result files for each experiment
 # 3. Computes statistics (mean, sd)
 # 4. Generates LaTeX table
+#
+# Usage: ./table_5_save.sh [--partial|--full]
+#   --partial (default): Process results from -partial control files
+#   --full:              Process results from regular control files
 
 set -e
+
+# Parse command line arguments
+MODE="partial"
+if [ "$1" = "--full" ]; then
+    MODE="full"
+elif [ "$1" = "--partial" ]; then
+    MODE="partial"
+elif [ -n "$1" ]; then
+    echo "Usage: $0 [--partial|--full]" >&2
+    echo "  --partial (default): Process results from -partial control files" >&2
+    echo "  --full:              Process results from regular control files" >&2
+    exit 1
+fi
+
+# Set suffix based on mode
+SUFFIX=""
+if [ "$MODE" = "partial" ]; then
+    SUFFIX="-partial"
+fi
 
 # Combine partial results and compute statistics
 process_config() {
@@ -70,8 +93,8 @@ get_K() {
   if [ -f "$LOG" ]; then
     K=$(grep "Total states:" "$LOG" | head -1 | awk '{print $NF}')
     if [ -n "$K" ]; then
-      # Add commas for readability
-      echo "$K" | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta'
+      # Add commas for readability using awk
+      echo "$K" | awk '{printf "%'"'"'d\n", $1}' 2>/dev/null || echo "$K"
       return 0
     fi
   fi
@@ -90,7 +113,7 @@ get_K() {
 # Function to get nn from control file
 get_nn() {
   local BASE=$1
-  local CTL="control/${BASE}.ctl"
+  local CTL="control/${BASE}${SUFFIX}.ctl"
 
   if [ -f "$CTL" ]; then
     grep "^nn" "$CTL" | awk '{print $2}'
@@ -105,7 +128,7 @@ echo "" >&2
 # Discover and process all configurations
 for NN in 02 04 06 08; do
   for DELTA in 0.0 1.0; do
-    BASE="mc-${NN}-${DELTA}"
+    BASE="mc-${NN}-${DELTA}${SUFFIX}"
 
     if process_config "$BASE"; then
       echo "  Processed $BASE" >&2
@@ -126,21 +149,21 @@ cat <<'EOF'
  \begin{tabular}{rrllrrrrrr}
    \hline
    \hline
-   $\Nplayers$ & $K$    & Sampling       &      & $\lambda_{\text{L}}$ & $\lambda_{\text{H}}$ & $\gamma$ & $\kappa$ & $\eta$ & $\mu$ \\
+   $\Nplayers$ & $K$      & Sampling       &      & $\lambda_{\text{L}}$ & $\lambda_{\text{H}}$ & $\gamma$ & $\kappa$ & $\eta$ & $\mu$ \\
    \hline
 EOF
 
 # DGP parameters (true values)
-echo "               &         & DGP            & True & 1.000 & 1.200 & 0.400 & 0.800 & 4.000 & 0.900 \\\\"
+echo "               &          & DGP            & True & 1.000 & 1.200 & 0.400 & 0.800 & 4.000 & 0.900 \\\\"
 echo "   \\hline"
 
 # Process each configuration
 for NN in 02 04 06 08; do
   NN_VAL=$(get_nn "mc-${NN}-0.0")
-  K=$(get_K "mc-${NN}-0.0")
+  K=$(get_K "mc-${NN}-0.0${SUFFIX}")
 
   # Process continuous (delta=0.0)
-  STATS_CONT="results/mc-${NN}-0.0-stats.txt"
+  STATS_CONT="results/mc-${NN}-0.0${SUFFIX}-stats.txt"
   if [ -f "$STATS_CONT" ]; then
     LAMBDA_L_MEAN=$(grep "^lambda_L" "$STATS_CONT" | awk '{printf "%.3f", $2}')
     LAMBDA_L_STD=$(grep "^lambda_L" "$STATS_CONT" | awk '{printf "%.3f", $3}')
@@ -155,12 +178,14 @@ for NN in 02 04 06 08; do
     FC_MEAN=$(grep "^fc" "$STATS_CONT" | awk '{printf "%.3f", $2}')
     FC_STD=$(grep "^fc" "$STATS_CONT" | awk '{printf "%.3f", $3}')
 
-    echo "    $NN_VAL          & $K      & Continuous     & Mean & $LAMBDA_L_MEAN & $LAMBDA_H_MEAN & $GAMMA_MEAN & $KAPPA_MEAN & $ETA_MEAN & $FC_MEAN \\\\"
-    echo "               &         &                & S.D. & $LAMBDA_L_STD & $LAMBDA_H_STD & $GAMMA_STD & $KAPPA_STD & $ETA_STD & $FC_STD \\\\"
+    printf "    %-3s        & %8s & Continuous     & Mean & %s & %s & %s & %s & %s & %s \\\\\\\\\n" \
+      "$NN_VAL" "$K" "$LAMBDA_L_MEAN" "$LAMBDA_H_MEAN" "$GAMMA_MEAN" "$KAPPA_MEAN" "$ETA_MEAN" "$FC_MEAN"
+    printf "               & %8s &                & S.D. & %s & %s & %s & %s & %s & %s \\\\\\\\\n" \
+      "" "$LAMBDA_L_STD" "$LAMBDA_H_STD" "$GAMMA_STD" "$KAPPA_STD" "$ETA_STD" "$FC_STD"
   fi
 
   # Process discrete (delta=1.0)
-  STATS_DISC="results/mc-${NN}-1.0-stats.txt"
+  STATS_DISC="results/mc-${NN}-1.0${SUFFIX}-stats.txt"
   if [ -f "$STATS_DISC" ]; then
     LAMBDA_L_MEAN=$(grep "^lambda_L" "$STATS_DISC" | awk '{printf "%.3f", $2}')
     LAMBDA_L_STD=$(grep "^lambda_L" "$STATS_DISC" | awk '{printf "%.3f", $3}')
@@ -175,8 +200,10 @@ for NN in 02 04 06 08; do
     FC_MEAN=$(grep "^fc" "$STATS_DISC" | awk '{printf "%.3f", $2}')
     FC_STD=$(grep "^fc" "$STATS_DISC" | awk '{printf "%.3f", $3}')
 
-    echo "               &         & \$\\Delta = 1.0\$ & Mean & $LAMBDA_L_MEAN & $LAMBDA_H_MEAN & $GAMMA_MEAN & $KAPPA_MEAN & $ETA_MEAN & $FC_MEAN \\\\"
-    echo "               &         &                & S.D. & $LAMBDA_L_STD & $LAMBDA_H_STD & $GAMMA_STD & $KAPPA_STD & $ETA_STD & $FC_STD \\\\"
+    printf "               & %8s & \$\\\\Delta = 1.0\$ & Mean & %s & %s & %s & %s & %s & %s \\\\\\\\\n" \
+      "" "$LAMBDA_L_MEAN" "$LAMBDA_H_MEAN" "$GAMMA_MEAN" "$KAPPA_MEAN" "$ETA_MEAN" "$FC_MEAN"
+    printf "               & %8s &                & S.D. & %s & %s & %s & %s & %s & %s \\\\\\\\\n" \
+      "" "$LAMBDA_L_STD" "$LAMBDA_H_STD" "$GAMMA_STD" "$KAPPA_STD" "$ETA_STD" "$FC_STD"
   fi
 done
 
