@@ -5,6 +5,17 @@
 
 set -e
 
+echo "Table 4: Quality Ladder Model Timing Results"
+echo "============================================"
+echo ""
+
+# Check for required binary and build if necessary
+if [ ! -x ./mcnp ]; then
+    echo "mcnp binary not found. Building..."
+    make mcnp
+    echo ""
+fi
+
 # Function to run a single timing experiment
 run_timing() {
   local NN=$1
@@ -27,9 +38,6 @@ run_timing() {
   echo "  Log saved to $LOG"
 }
 
-echo "Table 4: Timing Experiments"
-echo "==========================="
-echo ""
 
 # Run all timing experiments
 run_timing "02"

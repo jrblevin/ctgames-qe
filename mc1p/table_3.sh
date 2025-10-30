@@ -1,5 +1,18 @@
 #!/bin/bash
 
+set -e
+
+echo "Table 3: Single Agent Renewal Model Monte Carlo"
+echo "==============================================="
+echo ""
+
+# Check for required binary and build if necessary
+if [ ! -x ./mc1p ]; then
+    echo "mc1p binary not found. Building..."
+    make mc1p
+    echo ""
+fi
+
 # Create directories for logs and results
 LOGDIR=logs
 RESULTSDIR=results
