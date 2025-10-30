@@ -4,33 +4,53 @@
 
 set -e
 
-echo "Table 2: Rust (1987) Model Estimates"
-echo "===================================="
+echo "Tables 1 & 2: Continuous Time Rust (1987) Model"
+echo "==============================================="
 echo ""
+
+# Check for required binaries and build if necessary
+if [ ! -x ./rustct-abbe ] || [ ! -x ./rustct-homogeneous ] || [ ! -x ./rustct-heterogeneous ]; then
+    echo "Required rustct binaries not found. Building..."
+    make rustct-heterogeneous rustct-homogeneous rustct-abbe
+    echo ""
+fi
 
 # Create logs directory
 mkdir -p logs
 mkdir -p results
 
-# Run three model variants
-echo "Running ABBE model (lambda_L = lambda_H = 1.0)..."
-./rustct-abbe > logs/rustct-abbe.log 2>&1
-echo "Done. Log saved to logs/rustct-abbe.log"
+# Run three model variants in parallel
+echo "Running all three model variants in parallel..."
+echo ""
+echo "  1. ABBE model (lambda_L = lambda_H = 1.0)"
+echo "  2. Homogeneous model (lambda_L = lambda_H)"
+echo "  3. Heterogeneous model (lambda_L != lambda_H)"
 echo ""
 
-echo "Running homogeneous model (lambda_L = lambda_H)..."
-./rustct-homogeneous > logs/rustct-homogeneous.log 2>&1
-echo "Done. Log saved to logs/rustct-homogeneous.log"
-echo ""
+./rustct-abbe > logs/rustct-abbe.log 2>&1 &
+PID_ABBE=$!
 
-echo "Running heterogeneous model (lambda_L != lambda_H)..."
-./rustct-heterogeneous > logs/rustct-heterogeneous.log 2>&1
-echo "Done. Log saved to logs/rustct-heterogeneous.log"
+./rustct-homogeneous > logs/rustct-homogeneous.log 2>&1 &
+PID_HOMO=$!
+
+./rustct-heterogeneous > logs/rustct-heterogeneous.log 2>&1 &
+PID_HETE=$!
+
+echo "Waiting for all models to complete (PIDs $PID_ABBE $PID_HOMO $PID_HETE)..."
+wait $PID_ABBE $PID_HOMO $PID_HETE
+
+echo ""
+echo "All models completed successfully!"
+echo ""
+echo "  - ABBE model log: logs/rustct-abbe.log"
+echo "  - Homogeneous model log: logs/rustct-homogeneous.log"
+echo "  - Heterogeneous model log: logs/rustct-heterogeneous.log"
 echo ""
 
 # Extract results and generate table
-echo "Extracting results and generating LaTeX table..."
-echo "-------------------------------------------------"
+echo "Extracting results and generating LaTeX tables..."
+echo ""
+cat results/table_1.tex
 echo ""
 
 # Function to extract log likelihood
@@ -126,9 +146,9 @@ PVAL1b=$(chi2_pvalue "$LR1b" 2)
 LR2=$(awk -v ll_hete="$LL_HETE" -v ll_homo="$LL_HOMO" 'BEGIN {printf "%.2f", 2*(ll_hete - ll_homo)}')
 PVAL2=$(chi2_pvalue "$LR2" 1)
 
-echo "LR test 1a (ABBE vs homogeneous): LR = $LR1a, p = $PVAL1a"
-echo "LR test 1b (ABBE vs heterogeneous): LR = $LR1b, p = $PVAL1b"
-echo "LR test 2 (homogeneous vs heterogeneous): LR = $LR2, p = $PVAL2"
+echo "LR test ABBE vs. Homogeneous: LR = $LR1a, p = $PVAL1a"
+echo "LR test ABBE vs. Heterogeneous: LR = $LR1b, p = $PVAL1b"
+echo "LR test Homogeneous vs. Heterogeneous): LR = $LR2, p = $PVAL2"
 echo ""
 
 # Generate LaTeX table

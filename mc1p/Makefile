@@ -63,7 +63,7 @@ MC1P_OBJS = \
 
 RUSTCT_OBJS = $(MC1P_OBJS)
 
-TARGETS = mc1p rustct
+TARGETS = mc1p rustct-heterogeneous rustct-homogeneous rustct-abbe
 
 all: $(TARGETS)
 
@@ -105,15 +105,6 @@ mc1p.o: mc1p.f90 $(MC1P_OBJS)
 
 mc1p: $(MC1P_OBJS) mc1p.o
 	$(FC) $(FFLAGS) -o $@ $(LIBPATH) $(MC1P_OBJS) mc1p.o $(LIBS)
-
-rustct.o: rustct.f90 $(RUSTCT_OBJS)
-	$(FC) $(FFLAGS) $(INCLUDE) -o $@ -c $<
-
-rustct: $(RUSTCT_OBJS) rustct.o
-	$(FC) $(FFLAGS) -o $@ $(LIBPATH) $(RUSTCT_OBJS) rustct.o $(LIBS)
-
-# Build all three rustct variants for Table 2
-rustct-all: rustct-heterogeneous rustct-homogeneous rustct-abbe
 
 rustct-heterogeneous: $(RUSTCT_OBJS) rustct-heterogeneous.o
 	$(FC) $(FFLAGS) -o $@ $(LIBPATH) $(RUSTCT_OBJS) rustct-heterogeneous.o $(LIBS)

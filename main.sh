@@ -23,7 +23,7 @@ echo "Building mc1p and rustct binaries in mc1p/ directory"
 echo "===================================================="
 echo ""
 cd mc1p
-make rustct-all mc1p
+make mc1p rustct-heterogeneous rustct-homogeneous rustct-abbe
 echo ""
 check_binary "rustct-heterogeneous"
 check_binary "rustct-homogeneous"
