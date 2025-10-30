@@ -9,7 +9,7 @@ vf_tol       1.0e-8
 Q_tol        1.0e-12
 delta        0.00
 discrete     F
-nvf          100
+nvf          0
 
 # Model Parameters:
 #            lam1  lam2  gam   kap   eta   fc

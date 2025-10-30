@@ -264,9 +264,9 @@ contains
        allocate(v_old(nk, nvf), th_old(np+1, nvf))
        v_old = 0.0_wp
        th_old = 0.0_wp
+       v_old(:,1) = pi
        ivf = 1
     end if
-    v_old(:,1) = pi
 
     ! Precalculate market state transitions
     print '(a)', 'Precalculating market structure (s) transitions...'
