@@ -58,14 +58,14 @@ else
   SAMPLING="Discrete (Δ = $DELTA)"
 fi
 
+# Cap number of processes at number of replications
+if [ $NPROC -gt $NMC ]; then
+  NPROC=$NMC
+fi
+
 # Calculate replications per process with better load balancing
 BASE_PER_PROC=$((NMC / NPROC))
 REMAINDER=$((NMC % NPROC))
-
-if [ $BASE_PER_PROC -lt 1 ]; then
-  echo "Error: Too many processes ($NPROC) for $NMC replications"
-  exit 1
-fi
 
 # Create directories
 mkdir -p results logs
