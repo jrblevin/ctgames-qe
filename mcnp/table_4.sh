@@ -16,6 +16,19 @@ if [ ! -x ./mcnp ]; then
     echo ""
 fi
 
+# Function to check if timing experiment is complete
+is_complete() {
+  local NN=$1
+  local LOG="logs/time-${NN}.log"
+
+  # Check if log exists and contains elapsed time (successful completion)
+  if [ -f "$LOG" ] && grep -q "Elapsed time:" "$LOG" 2>/dev/null; then
+    return 0
+  fi
+
+  return 1
+}
+
 # Function to run a single timing experiment
 run_timing() {
   local NN=$1
@@ -25,6 +38,11 @@ run_timing() {
   if [ ! -f "$CTL" ]; then
     echo "Warning: Control file $CTL not found, skipping..." >&2
     return 1
+  fi
+
+  if is_complete "$NN"; then
+    echo "Skipping time-${NN} (already complete)"
+    return 0
   fi
 
   echo "Running time-${NN}..."
