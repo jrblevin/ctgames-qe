@@ -41,7 +41,7 @@ cd mcnp
 # Table 5
 ./table_5.sh
 
-cd..
+cd ..
 
 echo ""
 echo "All tables generated successfully!"
