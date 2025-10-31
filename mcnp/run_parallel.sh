@@ -165,12 +165,6 @@ while [ $COMPLETED -lt $NPROC ]; do
     PERCENT=0
   fi
 
-  # Create progress bar (50 chars wide)
-  BAR_WIDTH=50
-  FILLED=$((PERCENT * BAR_WIDTH / 100))
-  BAR=$(printf "%${FILLED}s" | tr ' ' '=')
-  EMPTY=$(printf "%$((BAR_WIDTH - FILLED))s" | tr ' ' ' ')
-
   # Calculate time estimate
   ELAPSED=$(($(date +%s) - START_TIME))
   TIMESTAMP=$(date)
