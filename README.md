@@ -665,23 +665,6 @@ and programs.  Please see the detailed replication instructions above for each.
 | Table 5 | `mcnp/table_5.sh --partial` | Quality Ladder Monte Carlo (Partial Replication) | `mcnp/results/table_5.tex` |
 | Table 5 | `mcnp/table_5.sh --full`    | Quality Ladder Monte Carlo (Full Replication)    | `mcnp/results/table_5.tex` |
 
-**Notes:**
-
-- Runtimes given are for replicating the complete tables, taking advantage of
-  parallelism on the hardware shown.  Actual runtime may vary significantly by
-  Fortran compiler used, hardware capabilities, and the level of
-  multiprocessing used.
-
-- The HPC cluster nodes we used have 48 Intel Xeon Platinum 8260 2.40GHz CPU
-  cores and 192 GB memory.
-
-- Table 5 is the most computationally intensive to replicate.  We executed
-  Monte Carlo trials in parallel across processors on an HPC cluster node.
-  See the full replication instructions above for details and recommendations.
-
-- Original log files and results obtained by the author are provided in the
-  respective `mc1p/original_logs/` and `mcnp/original_logs/` directories.
-
 ## References
 
 - Byrd, R. H., P. Lu, and J. Nocedal (1995).
