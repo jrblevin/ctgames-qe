@@ -65,13 +65,41 @@ The code has been tested with both GNU Fortran and Intel Fortran.
 Substantial parts of the code use bash scripting, which may require Linux or
 macOS.
 
+Hardware and software versions used for published results:
+
+- Tables 1, 2, and 3 in the paper were produced on a 2023 MacBook Pro M2 Max
+  computer running MacOS 15.7.1 and GNU Fortran 15.2.0.
+- The timing results shown in Table 4 were produced on a 2019 Mac Pro with a
+  2.5 GHz 28-Core Intel Xeon W processor with GNU Fortran 12.2.
+- Table 5 was produced using a high performance computing (HPC) cluster node
+  with Intel Xeon Platinum 8260 2.40 GHz CPUs (48-cores) and 192 GB memory
+  with the Intel Fortran compiler version 2024.2.0.
+
 ### Controlled Randomness
 
 For reproducibility, random number generator seeds for data generation are set
 within the Monte Carlo experiment control programs: `mc1p/mc1p.f90` (line 130)
-and `mcnp/mcnp.f90` (line 128).  However, differences in compilers, library
-versions, compiler optimization settings, hardware, etc. may still lead to
-slightly different results.
+and `mcnp/mcnp.f90` (line 128).
+
+### Expected Numerical Variability
+
+Small numerical differences may occur across different computing
+environments due to differences in compilers (e.g., GNU vs. Intel), compiler
+versions, CPU architecture (e.g., Intel x86 vs. ARM), and numerical
+libraries (e.g., BLAS and LAPACK).  Even with fixed random number generator
+seeds, floating-point arithmetic and compiler optimizations can result in
+small variations across platforms in practice.
+
+- Table 1 should replicate nearly exactly, as it consists of sample
+  characteristics from fixed data.
+- Table 2 may show small differences due to numerical optimization.
+- Table 4 should replicate exactly except for the "Obtain V" timing
+  column, which will vary by system and is not intended to be replicated.
+- Tables 3 and 5 contain Monte Carlo results that involve both random
+  number generation and optimization and are aggregated over many
+  replications.  These may exhibit small differences across computing
+  platforms.  Differences larger than 0.05 in either table would be
+  unexpected.
 
 ### Hardware Requirements
 
@@ -89,21 +117,14 @@ slightly different results.
 Notes:
 
 - Runtimes in the table above are for replicating complete tables, taking
-  advantage of parallelism on the hardware shown.  Actual runtime may vary
-  significantly by Fortran compiler used, hardware capabilities, and the
-  level of multiprocessing used.
+  advantage of parallelism on the hardware shown.
 
-- The high performance computing (HPC) cluster nodes we used have 48 Intel
-  Xeon Platinum 8260 2.40GHz CPU cores and 192 GB memory.
+- Actual runtime may vary significantly by Fortran compiler used, hardware
+  capabilities, and the level of multiprocessing used.
 
 - Table 5 is very computationally intensive to fully replicate.  Please
-  review the replication instructions below for details and recommendations.
-
-    - For example, on the HPC cluster node used the final table row with N=8
-      and Δ=1.0 required approximately 4 hours per Monte Carlo trial and a
-      full replication requires 100 trials.  With 48 cores at our disposal,
-      we executed trials concurrently using 6 parallel processes each with
-      8 cores used for parallel processing within a trial.
+  review the detailed replication instructions below for details and
+  recommendations.
 
 #### Single Agent Model (Tables 1-3)
 
@@ -114,34 +135,43 @@ Carlo experiments on a standard 2025 laptop or desktop computer.
   model has been tested and easily completes in under one minute on a 2023
   MacBook Pro (12-core M2 Max processor).
 
-- Table 3: The `mc1p` single agent Monte Carlo experiments and timing
-  exercises have been tested on a 2019 Mac Pro workstation (2.5 GHz 28-Core
-  Intel Xeon W processor), where the full set of experiments completed in
-  around 5 minutes. It completes in around 10 minutes on the same 2023
-  MacBook Pro mentioned above.
+- Table 3: The `mc1p` single agent Monte Carlo experiments have been tested on
+  a 2019 Mac Pro workstation (2.5 GHz 28-Core Intel Xeon W processor), where
+  the full set of experiments completed in around 5 minutes. It completes in
+  around 10 minutes on the 2023 MacBook Pro mentioned above.
 
 #### Quality Ladder Model (Tables 4-5)
 
-The quality ladder model Monte Carlo experiments are very computationally
-intensive and were carried out in parallel on an HPC cluster over several
-days.  The `mcnp` quality ladder model Monte Carlo experiments involve
-repeatedly solving for the equilibrium of a complex dynamic game with many
-firms and computing the matrix exponential for a large matrix to calculate
-the log likelihood function for each trial parameter value during the
-optimization.  This becomes feasible due to the computational benefits of
-continuous time games as well as the use of high performance, vectorized
-Fortran code.
+The `mcnp` quality ladder model results are much more computationally
+demanding to reproduce.  In particular, the Monte Carlo experiments
+involve repeatedly solving for the equilibrium of a complex dynamic
+game with many firms and computing the matrix exponential for a large
+matrix to calculate the log likelihood function for each trial parameter
+value during the optimization.  This becomes feasible due to the
+computational benefits of continuous time games as well as the use of
+high performance, vectorized Fortran code.
 
-However, with more time it is also possible to run these experiments on a
-high-end workstation.  For our largest experiment with 8 firms, a single
-Monte Carlo replication takes about 5 hours on a 2019 Mac Pro.  Completing
-all 100 replications reported in the paper would therefore take around 21
-days.  On the other hand, for the smaller 4 firm model all 100 replications
-can be completed in around 8 hours.
+- The quality ladder timing experiments reported in Table 4 were carried out
+  on a 2019 Mac Pro with 28 Intel Xeon CPU cores.  The complete table was
+  produced in about 20 hours.  This should be reproducible on a high-end
+  multicore workstation with at least 32 GB of RAM memory.
 
-Due to the increased computational requirements for Table 5 as reported in
-the paper, we also provide partial replication instructions and results below
-which are based on the first 10 out of 100 Monte Carlo trials.
+- The quality ladder model Monte Carlo experiments reported in Table 5
+  were carried out in parallel on a high performance computing (HPC)
+  cluster over several days.  The cluster node used has 48 Intel Xeon
+  Platinum 8260 2.40GHz CPU cores and 192 GB memory.
+
+    - For example, with the HPC cluster node we used, the final table row
+      with N=8 and Δ=1.0 required approximately 4 hours per Monte Carlo
+      trial and a full replication requires 100 trials.  With 48 cores at
+      our disposal, we executed trials concurrently using 6 parallel
+      processes each with 8 cores used for parallel processing within a
+      trial.
+
+    - Due to the increased computational requirements for Table 5 as
+      reported in the paper, we also provide partial replication instructions
+      and results below which are based on the first 10 out of 100 Monte
+      Carlo trials.
 
 ## Description of Code
 
@@ -204,6 +234,8 @@ Automated replication scripts:
 
   - `table_4.sh`: Replicates Table 4.
   - `table_5.sh`: Replicates Table 5.
+  - `make_timing_table.sh`: Helper script for Table 4 that collects
+    results and produces the LaTeX table.
   - `run_parallel.sh`: Helper script for Table 5 that handles automatic
     distribution of Monte Carlo trials across parallel processes.
   - `table_5_save.sh`: Helper script for Table 5 that collects results
