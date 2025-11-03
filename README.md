@@ -1,20 +1,19 @@
 # Replication Package for "Identification and Estimation of Continuous Time Dynamic Discrete Choice Games"
 
-[Identification and Estimation of Continuous Time Dynamic Discrete Choice Games][ctgames]  
-[Jason R. Blevins][jblevins]
-
 ## Overview
 
-The code in this replication package implements structural estimation and
-Monte Carlo experiments for two continuous-time dynamic discrete choice
-models analyzed in the paper.  Replication instructions below are organized
-into two main sections corresponding to these two models.
+This package contains the replication code for
+"[Identification and Estimation of Continuous Time Dynamic Discrete Choice Games][ctgames]"
+by [Jason R. Blevins][jblevins].
+The code implements structural estimation and Monte Carlo experiments
+for two continuous-time dynamic discrete choice models analyzed in the
+paper.  Replication instructions below are organized into two main
+sections corresponding to these two models.
 
 The first model (`mc1p` directory) is a continuous-time single-agent renewal
 model inspired by Rust (1987) that analyzes optimal bus engine replacement
-decisions.  There are two main programs for this model: `rustct` carries out
-the structural estimation of the model with real data while `mc1p` carries
-out the Monte Carlo experiments.
+decisions.  There are two main programs: `rustct` carries out the estimation
+of the model with real data while `mc1p` carries out the Monte Carlo experiments.
 
 The second model (`mcnp` directory) is a continuous-time quality ladder model
 based on Ericson and Pakes (1995) that analyzes oligopoly dynamics with entry,
@@ -49,22 +48,18 @@ are also included in this replication package for convenience.
 
 Data files: `mc1p/data/*.asc`
 
+------------------------------------------------------------------------------
+
 ## Computational Requirements
 
 ### Software Requirements
 
-  - Fortran 2008 or later compiler:
-      - GNU Fortran (gfortran)
-      - Intel Fortran Compiler
+  - Fortran 2008 compiler: GNU Fortran (gfortran) or Intel Fortran Compiler
   - LAPACK and BLAS libraries (or Intel MKL as alternative)
   - OpenMP support (included with above compilers)
   - GNU Make
   - Bash shell
   - R (for statistical calculations in Table 2 generation)
-
-The code has been tested with both GNU Fortran and Intel Fortran.
-Substantial parts of the code use bash scripting, which may require Linux or
-macOS.
 
 The Makefiles in this project will use GNU Fortran by default.  To use the
 Intel Fortran compiler, prefix the usual `make` command with `SYSTEM=intel`:
@@ -113,24 +108,29 @@ small variations across platforms in practice.
 - Table 1 should replicate nearly exactly, as it consists of sample
   characteristics from fixed data.
 - Table 2 may show small differences due to numerical optimization.
-- Table 4 should replicate exactly except for the "Obtain V" timing
-  column, which will vary by system and is not intended to be replicated.
 - Tables 3 and 5 contain Monte Carlo results that involve both random
-  number generation and optimization and are aggregated over many
-  replications.  These may exhibit small differences across computing
+  number generation and numerical optimization and are aggregated over
+  many replications.  These may exhibit small differences across computing
   platforms.  Differences larger than 0.05 in either table would be
   unexpected.
+- Table 4 should replicate exactly except for the "Obtain V" timing
+  column, which will vary by system and is not intended to be replicated.
 
-### Summary of Hardware Requirements
+## List of Tables and Programs
 
-| Table   | Description                         | Hardware Used                    | Runtime |
-|---------|-------------------------------------|----------------------------------|---------|
-| Table 1 | Rust (1987) Sample Characteristics  | MacBook Pro (12 core M2 Max)     | 30 sec  |
-| Table 2 | Estimates from Rust (1987) Data     | MacBook Pro (12 core M2 Max)     | 30 sec  |
-| Table 3 | Single Agent Renewal Model          | MacBook Pro (12 core M2 Max)     | 10 min  |
-| Table 4 | Quality Ladder Model Specifications | Mac Pro (28 core Intel Xeon W)   | 20 hr   |
-| Table 5 | Quality Ladder Model (Partial)      | HPC Cluster (48 core Intel Xeon) | 10 hr   |
-| Table 5 | Quality Ladder Model (Full)         | HPC Cluster (48 core Intel Xeon) | 5 days  |
+The provided code reproduces all tables in the paper.  Figures in the paper do
+not require code.  The following table summarizes the complete list of tables
+and programs.  Please see the detailed replication instructions in the
+table-specific sections that follow.
+
+| Table   | Replication Script     | Description                                      | Hardware Used                    | Runtime |
+|---------|------------------------|--------------------------------------------------|----------------------------------|---------|
+| Table 1 | `table_1_2.sh`         | Rust (1987) Sample Characteristics               | MacBook Pro (12 core M2 Max)     | 30 sec  |
+| Table 2 | `table_1_2.sh`         | Single Agent Estimates with Rust (1987) Data     | MacBook Pro (12 core M2 Max)     | 30 sec  |
+| Table 3 | `table_3.sh`           | Single Agent Monte Carlo Results                 | MacBook Pro (12 core M2 Max)     | 10 min  |
+| Table 4 | `table_4.sh`           | Quality Ladder Monte Carlo Specifications        | Mac Pro (28 core Intel Xeon W)   | 20 hr   |
+| Table 5 | `table_5.sh --partial` | Quality Ladder Monte Carlo (Partial Replication) | HPC Cluster (48 core Intel Xeon) | 10 hr   |
+| Table 5 | `table_5.sh --full`    | Quality Ladder Monte Carlo (Full Replication)    | HPC Cluster (48 core Intel Xeon) | 5 days  |
 
 Notes:
 
@@ -144,21 +144,7 @@ Notes:
   review the detailed replication instructions below for details and
   recommendations.
 
-## List of Tables and Programs
-
-The provided code reproduces all tables in the paper.  Figures in the paper do
-not require code.  The following table summarizes the complete list of tables
-and programs.  Please see the detailed replication instructions below for each
-table.
-
-| Output  | Program                     | Description                                      | Output File                |
-|---------|-----------------------------|--------------------------------------------------|----------------------------|
-| Table 1 | `mc1p/table_1_2.sh`         | Rust (1987) Sample Characteristics               | `mc1p/results/table_1.tex` |
-| Table 2 | `mc1p/table_1_2.sh`         | Single Agent Estimates with Rust (1987) Data     | `mc1p/results/table_2.tex` |
-| Table 3 | `mc1p/table_3.sh`           | Single Agent Monte Carlo Results                 | `mc1p/results/table_3.tex` |
-| Table 4 | `mcnp/table_4.sh`           | Quality Ladder Monte Carlo Specifications        | `mcnp/results/table_4.tex` |
-| Table 5 | `mcnp/table_5.sh --partial` | Quality Ladder Monte Carlo (Partial Replication) | `mcnp/results/table_5.tex` |
-| Table 5 | `mcnp/table_5.sh --full`    | Quality Ladder Monte Carlo (Full Replication)    | `mcnp/results/table_5.tex` |
+------------------------------------------------------------------------------
 
 ## Single-Agent Renewal Model (Tables 1-3)
 
@@ -195,9 +181,10 @@ Automated replication scripts:
 
 ### Tables 1 and 2: Single-Agent Model Empirical Results
 
-**Estimated time:** 30 seconds on a modern laptop.  
-**Hardware used:** 2023 MacBook Pro, 12-core M2 Max processor.  
-**Software used:** MacOS 15.7.1 and GNU Fortran 15.2.0.
+- **Estimated time:** 30 seconds on a modern laptop.
+- **Hardware used:** 2023 MacBook Pro, 12-core M2 Max processor.
+- **Software used:** MacOS 15.7.1 and GNU Fortran 15.2.0.
+- **Outputs:** `mc1p/results/table_1.tex` and  `mc1p/results/table_2.tex`.
 
 To automatically generate both Tables 1 and 2:
 
@@ -242,9 +229,10 @@ SYSTEM=intel make rustct-abbe rustct-homogeneous rustct-heterogeneous
 
 ### Table 3: Single-Agent Model Monte Carlo Experiments
 
-**Estimated time:** 10 minutes on a modern laptop.  
-**Hardware used:** 2023 MacBook Pro, 12-core M2 Max processor.  
-**Software used:** MacOS 15.7.1 and GNU Fortran 15.2.0.
+- **Estimated time:** 10 minutes on a modern laptop.
+- **Hardware used:** 2023 MacBook Pro, 12-core M2 Max processor.
+- **Software used:** MacOS 15.7.1 and GNU Fortran 15.2.0.
+- **Output:** `mc1p/results/table_3.tex`.
 
 To execute all the single-agent model Monte Carlo experiments reported in
 Table 3, you can use the `table_3.sh` script:
@@ -287,6 +275,8 @@ either `table_3.sh` or `mc1p`:
 export OMP_NUM_THREADS=8   # Adjust number of cores for your system
 ./table_3.sh
 ```
+
+------------------------------------------------------------------------------
 
 ## Quality Ladder Model (Tables 4-5)
 
@@ -342,11 +332,12 @@ Automated replication scripts:
 
 ### Quality Ladder Model: Table 4 (Timing Results)
 
-**Estimated time:** 20 hours on a modern, multicore workstation.  
-**Hardware used:** 2019 Mac Pro with 28-Core Intel Xeon W 2.5 GHz CPU, 96 GB RAM.  
-**Software used:** macOS 12.6 and GNU Fortran 12.2.0.  
-**Note:** The "Obtain V" column reports wall clock times and is not intended
-to be replicated exactly: timing will depend on system characteristics.
+- **Estimated time:** 20 hours on a modern, multicore workstation.
+- **Hardware used:** 2019 Mac Pro with 28-Core Intel Xeon W 2.5 GHz CPU, 96 GB RAM.
+- **Software used:** macOS 12.6 and GNU Fortran 12.2.0.
+- **Output:** `mcnp/results/table_4.tex`.
+- **Note:** The "Obtain V" column reports wall clock times and is not intended
+  to be replicated exactly: timing will depend on system characteristics.
 
 To produce the complete Table 4 automatically:
 
@@ -411,15 +402,15 @@ _Example:_ On the HPC cluster node we used, the final table row with
 $N=8$ and $\Delta=1.0$ required approximately 4 hours per Monte Carlo
 trial and a full replication requires 100 trials.  With 48 cores at our
 disposal, we executed trials concurrently using 6 parallel _processes_
-each with 8 cores used for _threads_ for parallel processing within a
-trial.
+each with 8 _threads_ for parallel processing within a trial.
 
 #### Approach 1: Full Replication (100 Monte Carlo Trials Per Specification)
 
-**Estimated time:** 5 days on a 48-core HPC cluster node.  
-**Hardware used:** HPC cluster node with Intel Xeon Platinum 8260
-2.40 GHz CPUs (48-cores) and 192 GB memory.  
-**Software used:** RHEL 8.10 and Intel Fortran compiler 2024.2.0.
+- **Estimated time:** 5 days on a 48-core HPC cluster node.
+- **Hardware used:** HPC cluster node with Intel Xeon Platinum 8260
+  2.40 GHz CPUs (48-cores) and 192 GB memory.
+- **Software used:** RHEL 8.10 and Intel Fortran compiler 2024.2.0.
+- **Output:** `mcnp/results/table_5.tex`.
 
 This approach reproduces all results as reported in the paper:
 
@@ -460,7 +451,7 @@ To resume interrupted runs:
 ```
 
 By default, the number of CPU cores in your system is automatically
-detected by `table\_5.sh`.  To override this, set the `OMP_NUM_PROCS`
+detected by `table_5.sh`.  To override this, set the `OMP_NUM_PROCS`
 environment variable before running the script.  Use your physical
 core count, not hyperthreaded logical cores.  To check: `lscpu` on
 Linux or `sysctl -n hw.physicalcpu` on macOS.
@@ -470,7 +461,7 @@ Linux or `sysctl -n hw.physicalcpu` on macOS.
 export OMP_NUM_PROCS=48
 ```
 
-Finally, we note that the `table\_5.sh` script will automatically
+Finally, we note that the `table_5.sh` script will automatically
 compile the `mcnp` binary using GNU Fortran, but if you wish to
 manually build it you can use `make` like so.  For example, on our HPC
 cluster, we used the Intel Fortran compiler:
@@ -483,11 +474,11 @@ SYSTEM=intel make
 
 #### Approach 2: Incremental Replication (Selected Specifications)
 
-**Requirements:** HPC cluster or high-end, multicore workstation
-with at least 32 GB RAM  
-**Estimated time:** Variable, depending on hardware and selection
+- **Requirements:** HPC cluster or high-end, multicore workstation
+  with at least 32 GB RAM
+- **Estimated time:** Variable, depending on hardware and selection
 
-The `table\_5.sh` script provides an `--experiment` command line option
+The `table_5.sh` script provides an `--experiment` command line option
 to specify an individual experiment specification to run.  Adding `--full`
 as above ensures that all 100 Monte Carlo replications will be completed.
 
@@ -516,12 +507,13 @@ cd mcnp
 
 #### Approach 3: Partial Replication (10 Monte Carlo Trials Per Specification)
 
-**Requirements:** HPC cluster or high-end, multicore workstation
-with at least 32 GB RAM  
-**Estimated time:** 10 hours on 48-core HPC cluster node  
-**Hardware used:** HPC cluster node with Intel Xeon Platinum 8260
-2.40 GHz CPUs (48-cores) and 192 GB memory.  
-**Software used:** RHEL 8.10 and Intel Fortran compiler 2024.2.0.
+- **Requirements:** HPC cluster or high-end, multicore workstation
+  with at least 32 GB RAM
+- **Estimated time:** 10 hours on 48-core HPC cluster node
+- **Hardware used:** HPC cluster node with Intel Xeon Platinum 8260
+  2.40 GHz CPUs (48-cores) and 192 GB memory.
+- **Software used:** RHEL 8.10 and Intel Fortran compiler 2024.2.0.
+- **Output:** `mcnp/results/table_5_partial.tex`.
 
 This uses separate control files (`control/mc-*-partial.ctl`) which
 carry out only the first 10 Monte Carlo trials instead of the full 100
@@ -561,7 +553,9 @@ deviations of the parameter estimates for only the first 10 of the full
 |     |        | $\Delta = 1.0$ | Mean |      1.003  |       1.204 |    0.399 |    0.792 |  3.937 |  0.905 |
 |     |        |                | S.D. |      0.131  |       0.131 |    0.004 |    0.172 |  0.377 |  0.052 |
 
-### All Tables: Automated Full Replication
+------------------------------------------------------------------------------
+
+## All Tables: Automated Full Replication
 
 For users with access to HPC resources, a `main.sh` script is provided that
 automates the complete replication of all tables:

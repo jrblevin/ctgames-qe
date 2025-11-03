@@ -29,8 +29,10 @@ fi
 
 # Set suffix based on mode
 SUFFIX=""
+OUTPUT_FILE="table_5.tex"
 if [ "$MODE" = "partial" ]; then
     SUFFIX="-partial"
+    OUTPUT_FILE="table_5_partial.tex"
 fi
 
 # Combine partial results and compute statistics
@@ -212,7 +214,7 @@ cat <<'EOF'
  \end{tabular}
 \end{table}
 EOF
-} | tee results/table_5.tex
+} | tee "results/$OUTPUT_FILE"
 
 echo "" >&2
-echo "Table written to results/table_5.tex" >&2
+echo "Table written to results/$OUTPUT_FILE" >&2
