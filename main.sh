@@ -39,7 +39,7 @@ cd mcnp
 ./table_4.sh
 
 # Table 5
-./table_5.sh
+./table_5.sh --full
 
 cd ..
 
